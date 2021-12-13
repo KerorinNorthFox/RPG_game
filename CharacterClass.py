@@ -1,4 +1,4 @@
-import random, sys, time, math
+import random, math
 
 class Character(object):
     def __init__(self, charaName, hp, mp, atk, vtl, mana, antiAttack, antiMana):

@@ -43,7 +43,7 @@ class Battle(object):
                 if party_select_way[chara_num] == 1 or party_select_way[chara_num] == 3: # 攻撃＆魔法
                     party_target_list = self._partySelectTarget(Enemy, party_target_list, "攻撃")
                 elif party_select_way[chara_num] == 2: # 防御
-                    party_target_list.append(None)
+                    party_target_list.append(True)
                 else: # 逃走
                     print("\n>>一行は逃げ出した")
                     time.sleep(2)
@@ -64,6 +64,26 @@ class Battle(object):
                     enemy_select_way.append(random.choice([1, 2], weights=[2, 1]))
                 # ターゲット選択
                 enemy_target_list = self._enemySelectTarget(Party, enemy_target_list)
+            
+            time.sleep(2)
+            # 攻撃処理
+            for num in range(max(self.PARTYLENGTH, self.ENEMYLENGTH)):
+                print(f">>>>>>>>{num}")
+                try:
+                    # 味方ターン
+                    if party_select_way[num] == 1: Party[num].physicalAttack(Enemy[party_target_list[num]], False) # 物理攻撃
+                    elif party_select_way[num] == 2: print(f"\n>>{Party[num].charaName}は防御の姿勢をとった") # 防御
+                    elif party_select_way[num] == 3: Party[num].magicalAttack(Enemy[party_target_list[num]], False) # 魔法攻撃
+                except: pass
+                time.sleep(2)
+                try:
+                    # 敵ターン
+                    if enemy_select_way[num] == 1: Enemy[num].physicalAttack(Party[enemy_target_list[num]], party_select_way[num]) # 物理攻撃
+                    elif enemy_select_way[num] == 2: Enemy[num].magicalAttack(Party[enemy_target_list[num]], party_select_way[num]) # 魔法攻撃
+                except: pass
+                time.sleep(2)
+                
+
             print(party_select_way)
             print(party_target_list)
             print(enemy_select_way)
@@ -130,7 +150,6 @@ class Battle(object):
     def _enemySelectTarget(self, Party, enemy_target_list) -> list[int]:
         while(True):
             select = random.randint(0, self.PARTYLENGTH-1)
-            print(f"\n>>{select}")
             if Party[select].alive is False:
                 continue
             else: break
@@ -185,14 +204,14 @@ class Stage(object):
     # ステージ1-1
     def _oneOne(self) -> list[object]:
         Enemy = []
-        Enemy.append(EnemyClass("敵A", "Zombie", 50, 0, 10, 5, 0, 0, 0, 0, True, 0))
+        Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0))
         return Enemy
 
     # ステージ1-2
     def _oneTwo(self) -> list[object]:
         Enemy = []
-        Enemy.append(EnemyClass("敵A", "Zombie", 50, 0, 10, 5, 0, 0, 0, 0, True, 0))
-        Enemy.append(EnemyClass("敵B", "Zombie", 50, 0, 10, 5, 0, 0, 0, 0, True, 0))
+        Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0))
+        Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0))
         return Enemy
 
 
@@ -200,10 +219,10 @@ if __name__ == "__main__":
     os.system('cls')
     # 味方編成
     Party = []
-    Party.append(PartyClass("勇者", "Hero", 50, 10, 10, 10, 10, 10, 5, 0, True))
-    Party.append(PartyClass("剣士", "Fencer", 50, 0, 15, 10, 0, 10, 5, 0, False))
-    Party.append(PartyClass("魔法使い", "Wizard", 50, 30, 5, 10, 15, 5, 10, 0, True))
-    Party.append(PartyClass("賢者", "Sage", 50, 30, 0, 10, 10, 5, 10, 0, True))
+    Party.append(PartyClass("勇者", "Hero", 200, 10, 100, 30, 10, 10, 5, 50, True))
+    Party.append(PartyClass("剣士", "Fencer", 200, 0, 150, 30, 0, 10, 5, 50, False))
+    Party.append(PartyClass("魔法使い", "Wizard", 200, 50, 30, 30, 100, 5, 10, 50, True))
+    Party.append(PartyClass("賢者", "Sage", 200, 50, 0, 30, 100, 5, 10, 50, True))
     # 本編開始
     while(True):
         World = Stage()

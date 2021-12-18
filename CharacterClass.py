@@ -2,7 +2,8 @@ import random, math
 
 class Character(object):
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合攻撃力×0~10%のダメージ
-    def physicalAttack(self, Atked):
+    def physicalAttack(self, Atked, defence):
+        print(f"\n>>{self.charaName}の攻撃")
         # ミス確率
         miss_prob = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/10)))
@@ -17,14 +18,16 @@ class Character(object):
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        Atked.hp -= dmg
-        print(f"\n>>{self.charaName}の攻撃\n{text}")
+        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/5
+        else: Atked.hp -= dmg
+        print(f"\n{text}")
         print(f">>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
     # 魔法攻撃処理 : ダメージが通りやすいが外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
-    def magicalAttack(self, Atked):
+    def magicalAttack(self, Atked, defence):
+        print(f"\n>>{self.charaName}の攻撃")
         # 魔法ダメージ計算
         dmg = self.mana - (random.randint(0, Atked.antiMana))
         # ミス確率
@@ -37,8 +40,9 @@ class Character(object):
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        Atked.hp -= dmg
-        print(f"\n>>{self.charaName}の攻撃 \n{text}")
+        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/5
+        else: Atked.hp -= dmg
+        print(f"{text}")
         print(f">>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)

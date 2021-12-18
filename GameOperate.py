@@ -68,7 +68,7 @@ class Battle(object):
             print(party_target_list)
             print(enemy_select_way)
             print(enemy_target_list)
-            a = input()
+            b = input()
 
 
     # 敵とエンカウント表示

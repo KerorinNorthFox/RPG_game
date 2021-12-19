@@ -1,4 +1,7 @@
-import random, math
+import random, math, time
+from colorama import Back
+
+TIME = 2
 
 class Character(object):
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合攻撃力×0~10%のダメージ
@@ -9,6 +12,7 @@ class Character(object):
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/10)))
         # ミス処理
         if miss_prob[0] == miss_prob[1]:
+            time.sleep(TIME)
             print(">>ミス")
             return
         # 物理ダメージ計算
@@ -20,8 +24,8 @@ class Character(object):
         # HP減算
         if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/5
         else: Atked.hp -= dmg
-        print(f"\n{text}")
-        print(f">>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        time.sleep(TIME)
+        print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
@@ -35,15 +39,16 @@ class Character(object):
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/20)))
         # ミス処理
         if miss_prob[0] == miss_prob[1] or dmg <= 0:
-            print(">>ミス")
+            time.sleep(TIME)
+            print("\n>>ミス")
             return
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
         if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/5
         else: Atked.hp -= dmg
-        print(f"{text}")
-        print(f">>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        time.sleep(TIME)
+        print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
@@ -52,6 +57,7 @@ class Character(object):
         if Atked.hp <= 0:
             Atked.hp = 0
             Atked.alive = False
+            time.sleep(TIME)
             print(f"\n>>{Atked.charaName}は倒れた")
 
     # クリティカル処理
@@ -78,20 +84,34 @@ class PartyClass(Character):
         self.antiMana = antiMana
         self.speed = speed
         self.alive = alive
+        self.way = 0
+        self.target = 0
+        # バックアップ
+        self.hp_BU = hp
+        self.mp_BU = mp
+        self.str_BU = str
+        self.vtl_BU = vtl
+        self.mana_BU = mana
+        self.antiAttack_BU = antiAttack
+        self.antiMana_BU = antiMana
+        self.speed_BU = speed
 
     # ステータス表示
     def showStatus(self):
         print(f'''--------------------
 >>Name: {self.charaName}
->>Job: {self.job}
->>HP: {self.hp}
->>MP: {self.mp}
->>STR: {self.str}
->>VTL: {self.vtl}
->>Mana: {self.mana}
->>AATK: {self.antiAttack}
->>AMana: {self.antiMana}
->>Speed: {self.speed}
+>>Job: {self.job}''')
+        if self.hp == 0:
+            print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
+        else:
+            print(f">>HP: {self.hp} / {self.hp_BU}")
+        print(f'''>>MP: {self.mp} / {self.mp_BU}
+>>STR: {self.str} / {self.str_BU}
+>>VTL: {self.vtl} / {self.vtl_BU}
+>>Mana: {self.mana} / {self.mana_BU}
+>>AATK: {self.antiAttack} / {self.antiAttack_BU}
+>>AMana: {self.antiMana} / {self.antiMana_BU}
+>>Speed: {self.speed} / {self.speed_BU}
 ''')
 
 class EnemyClass(Character):
@@ -108,12 +128,26 @@ class EnemyClass(Character):
         self.speed = speed
         self.alive = alive
         self.way_type = way_type
+        self.way = 0
+        self.target = 0
+        # バックアップ
+        self.hp_BU = hp
+        self.mp_BU = mp
+        self.str_BU = str
+        self.vtl_BU = vtl
+        self.mana_BU = mana
+        self.antiAttack_BU = antiAttack
+        self.antiMana_BU = antiMana
+        self.speed_BU = speed
+        self.way_type_BU = way_type
     
     # ステータス表示
     def showStatus(self):
         print(f'''--------------------
 >>Name: {self.charaName}
->>Job: {self.job}
->>HP: {self.hp}
->>MP: {self.mp}
-''')
+>>Job: {self.job}''')
+        if self.hp == 0:
+            print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
+        else:
+            print(f">>HP: {self.hp} / {self.hp_BU}")
+        print(">>MP: {self.mp} / {self.mp_BU}")

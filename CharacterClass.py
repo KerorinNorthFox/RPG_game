@@ -150,4 +150,4 @@ class EnemyClass(Character):
             print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
         else:
             print(f">>HP: {self.hp} / {self.hp_BU}")
-        print(">>MP: {self.mp} / {self.mp_BU}")
+        print(f">>MP: {self.mp} / {self.mp_BU}")

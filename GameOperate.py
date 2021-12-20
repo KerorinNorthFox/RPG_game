@@ -62,6 +62,8 @@ class Battle(object):
                     # ターゲット選択
                     Enemy[chara_num].target = self._enemySelectTarget(Party)
                 
+                print(PARTITION*2)
+
                 # 攻撃処理
                 party_counter = 0
                 enemy_counter = 0
@@ -120,15 +122,6 @@ class Battle(object):
                     self._endBattle(Party, Enemy)
                 time.sleep(TIME*4)
         except StopIteration: pass
-
-            # for num in range(self.PARTYLENGTH):
-            #     print(f">>>{Party[num].way}")
-            #     print(f">>>{Party[num].target}")
-            # print(">>>>>>>>")
-            # for num in range(self.ENEMYLENGTH):
-            #     print(f">>>{Enemy[num].way}")
-            #     print(f">>>{Enemy[num].target}")
-            # a = input()
 
 
     # 敵とエンカウント表示
@@ -204,6 +197,7 @@ class Battle(object):
         party_list = [0 for chara_num in range(self.PARTYLENGTH) if Party[chara_num].hp == 0]
         enemy_list = [0 for chara_num in range(self.ENEMYLENGTH) if Enemy[chara_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
+            print(PARTITION)
             time.sleep(TIME)
             print(f"\n>>戦闘終了")
             time.sleep(TIME)

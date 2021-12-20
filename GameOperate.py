@@ -200,7 +200,7 @@ class Battle(object):
         while(True):
             print(f"\n>>誰に{text_1}する? : ")
             for x in range(len(Enemy)):
-                print(f"{x+1} : {Enemy[x].charaName}") #########################################
+                print(f"{x+1} : {Enemy[x].charaName}")
             select = input("\n: ")
             try:
                 select = int(select)

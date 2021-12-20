@@ -4,15 +4,15 @@ import os, sys, time
 TIME = 2
 PARTITION = '-------------------------'
 MAGICNAME = ["通常", "初級ヒール", "中級ヒール", "上級ヒール", "光"]
-ONEONE = True
-ONETWO = True
+STAGENUM = [True, False]
+NOWSTAGE = 0
 
 # 戦闘処理
 class Battle(object):
     def __init__(self, Party, Enemy):
         self.PARTYLENGTH = len(Party) # 味方の人数
         self.ENEMYLENGTH = len(Enemy) # 敵の人数
-        self.NOWTURN = 1
+        self.NOWTURN = 1 # 現在のターン
 
         print(">>戦闘開始\n")
         # 敵とエンカウント表示
@@ -276,22 +276,26 @@ class Battle(object):
 
 # ステージ管理
 class Stage(object):
+    def __init__(self, Party):
+        Enemy = self._selectStage(Party)
+        return Enemy
     # ステージ表示
     def _showStage(self):
-        print(">>名前        : 番号")
+        print(">>名前      : 番号")
         print(PARTITION)
-        if ONEONE is True: print(">>ステージ1-1 : 1")
-        if ONETWO is True: print(">>ステージ1-2 : 2")      
+        for num in range(len(STAGENUM)):
+            if STAGENUM[num] == True:
+                print(">>ステージ{num+1} : {num+1}      
 
     # ステージ選択 : 敵編成を返す
-    def selectStage(self, Party) -> list[object]:
+    def _selectStage(self, Party) -> list[object]:
         while(True):
             # プレイ可能ステージ表示
             self._showStage()
             select = input("\n>>ステージを選択してください(Pキーで味方ステータス表示, cキーでゲーム終了) : ")
             # ステージ敵セット
-            if select == "1" and ONEONE is True: Enemy = self._oneOne()
-            elif select == "2" and ONETWO is True: Enemy = self._oneTwo()
+            if select == "1" and STAGENUM[0] is True: Enemy = self._oneOne()
+            elif select == "2" and STAGENUM[1] is True: Enemy = self._oneTwo()
             elif select == "p":
                 os.system('cls')
                 for x in range(len(Party)): Party[x].showStatus()
@@ -322,6 +326,7 @@ class Stage(object):
     def _oneOne(self) -> list[object]:
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        NOWSTAGE = 1
         return Enemy
 
     # ステージ1-2
@@ -329,6 +334,7 @@ class Stage(object):
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
         Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        NOWSTAGE = 2
         return Enemy
 
 if __name__ == "__main__":
@@ -341,9 +347,10 @@ if __name__ == "__main__":
     Party.append(PartyClass("賢者", "Sage", 200, 50, 0, 30, 100, 5, 10, 50, True, True, ["通常", "上級ヒール", "光"]))
     # 本編開始
     while(True):
-        World = Stage()
         # ステージ選択
-        Enemy = World.selectStage(Party) 
+        Enemy = Stage(Party)
         # 戦闘処理
         Battle(Party, Enemy)
+        # 次ステージ開放
+        STAGENUM[NOWSTAGE] = True
         os.system('cls')

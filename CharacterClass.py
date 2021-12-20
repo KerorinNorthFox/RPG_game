@@ -1,4 +1,5 @@
 import random, math, time
+from bs4 import element
 from colorama import Back
 
 TIME = 2
@@ -30,10 +31,10 @@ class Character(object):
         self._noHp(Atked)
 
     # 魔法攻撃処理 : ダメージが通りやすいが外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
-    def magicalAttack(self, Atked, defence):
+    def magicalAttack(self, Atked, defence, rate):
         print(f"\n>>{self.charaName}の攻撃")
         # 魔法ダメージ計算
-        dmg = self.mana - (random.randint(0, Atked.antiMana))
+        dmg = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
         # ミス確率
         miss_prob = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/20)))
@@ -51,6 +52,15 @@ class Character(object):
         print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
+
+    def heal(self, Healed, rate):
+        print(f"\n>>{self.charaName}のヒール")
+        heal = math.floor(self.mana/3) * rate
+        Healed.hp += heal
+        if Healed.hp >= Healed.hp_BU: 
+            Healed.hp == Healed.hp_BU
+            print(f"\n>>{Healed.charaName}の体力が最大まで回復した")
+        else: print(f"\n>>{Healed.charaName}の体力が{heal}回復した")
 
     # 死亡処理
     def _noHp(self, Atked):
@@ -72,7 +82,7 @@ class Character(object):
         return dmg, text
 
 class PartyClass(Character):
-    def __init__(self, charaName, job, hp, mp, str, vtl, mana, antiAttack, antiMana, speed, alive):
+    def __init__(self, charaName, job, hp, mp, str, vtl, mana, antiAttack, antiMana, speed, alive, element, magic):
         self.charaName = charaName
         self.job = job
         self.hp = hp
@@ -84,8 +94,11 @@ class PartyClass(Character):
         self.antiMana = antiMana
         self.speed = speed
         self.alive = alive
+        self.element = element
+        self.magic = magic
         self.way = 0
         self.target = 0
+        self.my_magic = 0
         # バックアップ
         self.hp_BU = hp
         self.mp_BU = mp
@@ -115,7 +128,7 @@ class PartyClass(Character):
 ''')
 
 class EnemyClass(Character):
-    def __init__(self, charaName, job, hp, mp, str, vtl, mana, antiAttack, antiMana, speed, alive, way_type):
+    def __init__(self, charaName, job, hp, mp, str, vtl, mana, antiAttack, antiMana, speed, alive, way_type, element):
         self.charaName = charaName
         self.job = job
         self.hp = hp
@@ -127,6 +140,7 @@ class EnemyClass(Character):
         self.antiMana = antiMana
         self.speed = speed
         self.alive = alive
+        self.element = element
         self.way_type = way_type
         self.way = 0
         self.target = 0

@@ -1,4 +1,3 @@
-from tkinter.constants import NONE
 from CharacterClass import *
 import os, sys, time
 

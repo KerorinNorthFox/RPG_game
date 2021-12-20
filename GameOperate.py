@@ -264,7 +264,7 @@ class Battle(object):
         party_list = [0 for chara_num in range(self.PARTYLENGTH) if Party[chara_num].hp == 0]
         enemy_list = [0 for chara_num in range(self.ENEMYLENGTH) if Enemy[chara_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
-            print(PARTITION)
+            print(PARTITION*2)
             time.sleep(TIME)
             print(f"\n>>戦闘終了")
             time.sleep(TIME)
@@ -276,19 +276,16 @@ class Battle(object):
 
 # ステージ管理
 class Stage(object):
-    def __init__(self, Party):
-        Enemy = self._selectStage(Party)
-        return Enemy
     # ステージ表示
     def _showStage(self):
         print(">>名前      : 番号")
         print(PARTITION)
         for num in range(len(STAGENUM)):
             if STAGENUM[num] == True:
-                print(">>ステージ{num+1} : {num+1}      
+                print(f">>ステージ{num+1} : {num+1}") 
 
     # ステージ選択 : 敵編成を返す
-    def _selectStage(self, Party) -> list[object]:
+    def selectStage(self, Party) -> list[object]:
         while(True):
             # プレイ可能ステージ表示
             self._showStage()
@@ -326,6 +323,7 @@ class Stage(object):
     def _oneOne(self) -> list[object]:
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        global NOWSTAGE
         NOWSTAGE = 1
         return Enemy
 
@@ -334,6 +332,7 @@ class Stage(object):
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
         Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        global NOWSTAGE
         NOWSTAGE = 2
         return Enemy
 
@@ -347,8 +346,9 @@ if __name__ == "__main__":
     Party.append(PartyClass("賢者", "Sage", 200, 50, 0, 30, 100, 5, 10, 50, True, True, ["通常", "上級ヒール", "光"]))
     # 本編開始
     while(True):
+        World = Stage()
         # ステージ選択
-        Enemy = Stage(Party)
+        Enemy = World.selectStage(Party)
         # 戦闘処理
         Battle(Party, Enemy)
         # 次ステージ開放

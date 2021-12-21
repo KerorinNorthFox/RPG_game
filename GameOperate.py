@@ -1,5 +1,5 @@
 from CharacterClass import *
-import os, sys, time
+import os, sys, time, random
 
 TIME = 2
 PARTITION = '-------------------------'
@@ -29,28 +29,28 @@ class Battle(object):
                 print(PARTITION*2)
 
                 # 味方のターン
-                for chara_num in range(self.PARTYLENGTH):
+                for ch_num in range(self.PARTYLENGTH):
                     # 死亡判定
-                    if Party[chara_num].alive is False:
-                        Party[chara_num].way = None
-                        Party[chara_num].target = None
+                    if Party[ch_num].alive is False:
+                        Party[ch_num].way = None
+                        Party[ch_num].target = None
                         continue
                     # 行動選択
-                    Party[chara_num].way = self._myTurn(Party, chara_num)
+                    Party[ch_num].way = self._myTurn(Party, ch_num)
                     # ターゲット選択
-                    if Party[chara_num].way == 1: # 攻撃
-                        Party[chara_num].target = self._partySelectTarget(Enemy, "攻撃", "倒した敵")
-                    elif Party[chara_num].way == 2: # 防御
-                        Party[chara_num].target = True
-                    elif Party[chara_num].way == 3: # 魔法
-                        Party[chara_num].my_magic = self._selectMagic(Party, chara_num)
-                        if "ヒール" in Party[chara_num].magic[Party[chara_num].my_magic]:
-                            Party[chara_num].target = self._partySelectTarget(Party, "ヒール", "倒れた味方")
+                    if Party[ch_num].way == 1: # 攻撃
+                        Party[ch_num].target = self._partySelectTarget(Enemy, "攻撃", "倒した敵", self.ENEMYLENGTH)
+                    elif Party[ch_num].way == 2: # 防御
+                        Party[ch_num].target = None
+                    elif Party[ch_num].way == 3: # 魔法
+                        Party[ch_num].my_magic = self._selectMagic(Party, ch_num)
+                        if "ヒール" in Party[ch_num].magic[Party[ch_num].my_magic]:
+                            Party[ch_num].target = self._partySelectTarget(Party, "ヒール", "倒れた味方", self.PARTYLENGTH)
                         else:
-                            Party[chara_num].target = self._partySelectTarget(Enemy, "魔法攻撃", "倒した敵")
-                    elif Party[chara_num].way == 4: # 属性変更
-                        self._changeElement(Party, chara_num)
-                        Party[chara_num].target = True
+                            Party[ch_num].target = self._partySelectTarget(Enemy, "魔法攻撃", "倒した敵", self.ENEMYLENGTH)
+                    elif Party[ch_num].way == 4: # 属性変更
+                        self._changeElement(Party, ch_num)
+                        Party[ch_num].target = None
                     else: # 逃走
                         print("\n>>一行は逃げ出した")
                         time.sleep(TIME)
@@ -58,55 +58,64 @@ class Battle(object):
                         return
 
                 # 敵のターン
-                for chara_num in range(self.ENEMYLENGTH):
+                for ch_num in range(self.ENEMYLENGTH):
                     # 死亡判定
-                    if Enemy[chara_num].alive is False:
-                        Enemy[chara_num].way = None
-                        Enemy[chara_num].target = None
+                    if Enemy[ch_num].alive is False:
+                        Enemy[ch_num].way = None
+                        Enemy[ch_num].target = None
                         continue
                     # 行動選択
-                    if Enemy[chara_num].way_type == 0: # 攻撃
-                        Enemy[chara_num].way = 1
-                    elif Enemy[chara_num].way_type == 1: # 攻撃＆魔法
-                        Enemy[chara_num].way = random.choice([1, 2], weights=[2, 1])
+                    if Enemy[ch_num].way_type == 0: # 攻撃
+                        Enemy[ch_num].way = 1
+                    elif Enemy[ch_num].way_type == 1: # 攻撃＆魔法
+                        Enemy[ch_num].way = random.choice([1, 2], weights=[2, 1])
                     # ターゲット選択
-                    Enemy[chara_num].target = self._enemySelectTarget(Party)
+                    Enemy[ch_num].target = self._enemySelectTarget(Party)
                 
                 print(PARTITION*2)
 
                 # 攻撃処理
-                party_counter = 0
-                enemy_counter = 0
+                pt_ct = 0
+                em_ct = 0
                 # 防御表示
                 self._showDefense(Party)
                 time.sleep(TIME)
                 for _ in range(max(self.PARTYLENGTH, self.ENEMYLENGTH)):
                     # 味方攻撃ループ
-                    #try:
-                    while(True):
-                        # 死亡判定
-                        if Party[party_counter].way == None or Party[party_counter].alive == False:
-                            party_counter += 1
-                            continue
-                        # ターゲット死亡時敵ターゲット選択やり直し
-                        if Enemy[Party[party_counter].target].alive is False:
-                            Party[party_counter].target = random.randint(0, self.ENEMYLENGTH)
-                            if Enemy[Party[party_counter].target].alive is False:
+                    try:
+                        while(True):
+                            # 死亡判定
+                            if Party[pt_ct].way == None or Party[pt_ct].alive == False or Party[pt_ct].target == None:
+                                pt_ct += 1
                                 continue
-                        # 各処理
-                        if Party[party_counter].way == 1: # 物理攻撃
-                            Party[party_counter].physicalAttack(Enemy[Party[party_counter].target], False)
-                        elif Party[party_counter].way == 3: # 魔法攻撃
-                            # 魔法レート設定
-                            magic_rate = self._setMagicRate(Party, Enemy, party_counter)
-                            # 魔法種類別処理
-                            self._magicProcess(Party, Enemy, party_counter, magic_rate)
-                        else: # 防御＆属性変化
-                            party_counter += 1
-                            continue
-                        party_counter += 1
-                        break
-                    #except: pass
+                            # ターゲット死亡時敵ターゲット選択やり直し
+                            print(pt_ct)
+                            print(Party[pt_ct].target)
+                            if Party[pt_ct].way == 3 and "ヒール" in Party[pt_ct].magic[Party[pt_ct].my_magic]:
+                                if Party[Party[pt_ct].target].alive is False:
+                                    # ヒールの場合
+                                    Party[pt_ct].target = random.randint(0, self.PARTYLENGTH)
+                                    if Party[Party[pt_ct].target].alive is False:
+                                        continue
+                            else:
+                                if Enemy[Party[pt_ct].target].alive is False:
+                                    Party[pt_ct].target = random.randint(0, self.ENEMYLENGTH)
+                                    if Enemy[Party[pt_ct].target].alive is False:
+                                        continue
+                            # 各処理
+                            if Party[pt_ct].way == 1: # 物理攻撃
+                                Party[pt_ct].physicalAttack(Enemy[Party[pt_ct].target], False)
+                            elif Party[pt_ct].way == 3: # 魔法攻撃
+                                # 魔法レート設定
+                                magic_rate = self._setMagicRate(Party, Enemy, pt_ct)
+                                # 魔法種類別処理
+                                self._magicProcess(Party, Enemy, pt_ct, magic_rate)
+                            else: # 防御＆属性変化
+                                pt_ct += 1
+                                continue
+                            pt_ct += 1
+                            break
+                    except: pass
                     # 戦闘終了判定
                     self._endBattle(Party, Enemy)
                     time.sleep(TIME)
@@ -114,34 +123,34 @@ class Battle(object):
                     try:
                         while(True):
                             # 死亡判定
-                            if Enemy[enemy_counter].way == None or Enemy[enemy_counter].alive == False:
-                                enemy_counter += 1
+                            if Enemy[em_ct].way == None or Enemy[em_ct].alive == False:
+                                em_ct += 1
                                 continue
                             # ターゲット死亡時敵ターゲット選択やり直し
-                            if Party[Enemy[enemy_counter].target].alive is False:
-                                Enemy[enemy_counter].target = self._enemySelectTarget(Party)
+                            if Party[Enemy[em_ct].target].alive is False:
+                                Enemy[em_ct].target = self._enemySelectTarget(Party)
                             # 各処理
-                            if Enemy[enemy_counter].way == 1: # 物理攻撃
-                                Enemy[enemy_counter].physicalAttack(Party[Enemy[enemy_counter].target], Party[Enemy[enemy_counter].target].target)
-                            elif Enemy[enemy_counter].way == 2: # 魔法攻撃
-                                Enemy[enemy_counter].magicalAttack(Party[Enemy[enemy_counter].target], Party[Enemy[enemy_counter].target].target, 1.0)
+                            if Enemy[em_ct].way == 1: # 物理攻撃
+                                Enemy[em_ct].physicalAttack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].target)
+                            elif Enemy[em_ct].way == 2: # 魔法攻撃
+                                Enemy[em_ct].magicalAttack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].target, 1.0)
                             else: # 防御＆行動不能
-                                enemy_counter += 1
+                                em_ct += 1
                                 continue
-                            enemy_counter += 1
+                            em_ct += 1
                             break
                     except: pass
                     # 戦闘終了判定
                     self._endBattle(Party, Enemy)
                     time.sleep(TIME)
-                time.sleep(TIME*2)
+                time.sleep(TIME)
                 self.NOWTURN += 1
         except StopIteration: pass
 
 
     # 敵とエンカウント表示
     def _encountEnemy(self, Enemy) -> None:
-        for chara_num in range(self.ENEMYLENGTH): print(f">>{Enemy[chara_num].charaName}が現れた!")
+        for ch_num in range(self.ENEMYLENGTH): print(f">>{Enemy[ch_num].charaName}が現れた!")
         time.sleep(TIME*2)
     
     # 敵味方のステータスを表示
@@ -170,16 +179,16 @@ class Battle(object):
         return select
 
     # 魔法選択
-    def _selectMagic(self, Party, chara_num) -> int:
+    def _selectMagic(self, Party, ch_num) -> int:
         while(True):
             print(f"\n--どの魔法を使う?--")
             time.sleep(TIME)
-            for counter in range(len(Party[chara_num].magic)):
-                print(f">>{counter+1} : {Party[chara_num].magic[counter]}")
+            for counter in range(len(Party[ch_num].magic)):
+                print(f">>{counter+1} : {Party[ch_num].magic[counter]}")
             select = input("\n: ")
             try:
                 select = int(select)
-                if select > len(Party[chara_num].magic) or select <= 0:
+                if select > len(Party[ch_num].magic) or select <= 0:
                     print("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
@@ -190,20 +199,20 @@ class Battle(object):
         return select-1
 
     # 属性変更
-    def _changeElement(self, Party, chara_num) -> None:
-        print(f"\n>>{Party[chara_num].charaName}は属性を変更した!")
-        Party[chara_num].element = not Party[chara_num].element
+    def _changeElement(self, Party, ch_num) -> None:
+        print(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
+        Party[ch_num].element = not Party[ch_num].element
 
     # 味方ターゲット選択
-    def _partySelectTarget(self, Enemy, text_1, text_2) -> int:
+    def _partySelectTarget(self, Enemy, text_1, text_2, length) -> int:
         while(True):
             print(f"\n>>誰に{text_1}する? : ")
-            for x in range(len(Enemy)):
+            for x in range(length):
                 print(f"{x+1} : {Enemy[x].charaName}")
             select = input("\n: ")
             try:
                 select = int(select)
-                if select > self.ENEMYLENGTH or select <= 0:
+                if select > length or select <= 0:
                     print("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
@@ -228,8 +237,12 @@ class Battle(object):
 
     # 魔法レート設定
     def _setMagicRate(self, Party, Enemy, counter) -> float:
-        if Party[counter].element == Enemy[Party[counter].target].element: magic_rate = 1.0
-        else: magic_rate = 1.4
+        # ヒールの場合例外
+        if "ヒール" in Party[counter].magic[Party[counter].my_magic]:
+            magic_rate = 1.4
+        else:
+            if Party[counter].element == Enemy[Party[counter].target].element: magic_rate = 1.0
+            else: magic_rate = 1.4
         return magic_rate
 
     # 魔法種類別処理
@@ -255,14 +268,20 @@ class Battle(object):
 
     # 防御表示
     def _showDefense(self, Party) -> None:
-        for chara_num in range(self.PARTYLENGTH):
-            if Party[chara_num].way == 2:
-                print(f"\n>>{Party[chara_num].charaName}は防御の姿勢をとった")
+        for ch_num in range(self.PARTYLENGTH):
+            if Party[ch_num].way == 2:
+                print(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
+
+    # def _showDefense(self, Party, num) -> None:
+    #     if num >= self.PARTYLENGTH: return
+    #     if Party[num].way == 2:
+    #         print(f"\n>>{Party[num].charaName}は防御の姿勢をとった")
+    #     self._showDefense(Party, num+1)
 
     # 戦闘終了
     def _endBattle(self, Party, Enemy) -> None:
-        party_list = [0 for chara_num in range(self.PARTYLENGTH) if Party[chara_num].hp == 0]
-        enemy_list = [0 for chara_num in range(self.ENEMYLENGTH) if Enemy[chara_num].hp == 0]
+        party_list = [0 for ch_num in range(self.PARTYLENGTH) if Party[ch_num].hp == 0]
+        enemy_list = [0 for ch_num in range(self.ENEMYLENGTH) if Enemy[ch_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
             print(PARTITION*2)
             time.sleep(TIME)

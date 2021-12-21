@@ -1,5 +1,4 @@
 import random, math, time
-from bs4 import element
 from colorama import Back
 
 TIME = 2

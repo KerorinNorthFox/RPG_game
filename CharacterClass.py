@@ -55,7 +55,7 @@ class Character(object):
 
     def heal(self, Healed, rate):
         print(f"\n>>{self.charaName}のヒール")
-        heal = math.floor(self.mana/3) * rate
+        heal = math.floor((self.mana/3) * rate)
         Healed.hp += heal
         if Healed.hp >= Healed.hp_BU: 
             Healed.hp == Healed.hp_BU

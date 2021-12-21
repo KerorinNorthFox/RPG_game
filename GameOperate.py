@@ -352,5 +352,6 @@ if __name__ == "__main__":
         # 戦闘処理
         Battle(Party, Enemy)
         # 次ステージ開放
-        STAGENUM[NOWSTAGE] = True
+        try: STAGENUM[NOWSTAGE] = True
+        except: pass
         os.system('cls')

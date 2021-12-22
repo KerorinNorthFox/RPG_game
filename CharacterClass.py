@@ -8,7 +8,7 @@ class Character(object):
     def physicalAttack(self, Atked, defence):
         print(f"\n>>{self.charaName}の攻撃")
         # ミス確率
-        miss_prob = []
+        miss_prob: list[int] = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/10)))
         # ミス処理
         if miss_prob[0] == miss_prob[1]:
@@ -16,7 +16,7 @@ class Character(object):
             print(">>ミス")
             return
         # 物理ダメージ計算
-        dmg = self.str - (Atked.vtl + random.randint(0, Atked.antiAttack))
+        dmg: int = self.str - (Atked.vtl + random.randint(0, Atked.antiAttack))
         # カスダメ計算
         if dmg <= 0: dmg = math.floor(self.str * (random.randint(0, 10)/100))
         # クリティカル処理
@@ -33,9 +33,9 @@ class Character(object):
     def magicalAttack(self, Atked, defence, rate):
         print(f"\n>>{self.charaName}の攻撃")
         # 魔法ダメージ計算
-        dmg = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
+        dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
         # ミス確率
-        miss_prob = []
+        miss_prob: list[int] = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/20)))
         # ミス処理
         if miss_prob[0] == miss_prob[1] or dmg <= 0:
@@ -54,7 +54,7 @@ class Character(object):
 
     def heal(self, Healed, rate):
         print(f"\n>>{self.charaName}のヒール")
-        heal = math.floor((self.mana/3) * rate)
+        heal: int = math.floor((self.mana/3) * rate)
         Healed.hp += heal
         if Healed.hp >= Healed.hp_BU: 
             Healed.hp == Healed.hp_BU
@@ -72,7 +72,7 @@ class Character(object):
     # クリティカル処理
     def _critical(self, dmg):
         # クリティカル確率 : 1%
-        critical = random.randint(0, 100)
+        critical: int = random.randint(0, 100)
         # クリティカル処理
         if critical == 1:
             text = '\n>>急所にあたった!\n'
@@ -81,27 +81,27 @@ class Character(object):
         return dmg, text
 
 class PartyClass(Character):
-    def __init__(self, charaName, job, hp, mp, str, vtl, mana, antiAttack, antiMana, speed, alive, element, magic):
-        self.charaName = charaName
-        self.job = job
-        self.hp = hp
-        self.mp = mp
-        self.str = str
-        self.vtl = vtl
-        self.mana = mana
-        self.antiAttack = antiAttack
-        self.antiMana = antiMana
-        self.speed = speed
-        self.alive = alive
-        self.element = element
-        self.magic = magic
-        self.way = 0
-        self.target = 0
-        self.my_magic = 0
+    def __init__(self, charaName, job, hp, mp, strg, vtl, mana, antiAttack, antiMana, speed, alive, element, magic):
+        self.charaName: str = charaName
+        self.job: str = job
+        self.hp: int = hp
+        self.mp: int = mp
+        self.str: int = strg
+        self.vtl: int = vtl
+        self.mana: int = mana
+        self.antiAttack: int = antiAttack
+        self.antiMana: int = antiMana
+        self.speed: int = speed
+        self.alive: bool = alive
+        self.element: bool = element
+        self.magic: list[str] = magic
+        self.way: int = 0
+        self.target: int = 0
+        self.my_magic: int = 0
         # バックアップ
         self.hp_BU = hp
         self.mp_BU = mp
-        self.str_BU = str
+        self.str_BU = strg
         self.vtl_BU = vtl
         self.mana_BU = mana
         self.antiAttack_BU = antiAttack
@@ -127,26 +127,26 @@ class PartyClass(Character):
 ''')
 
 class EnemyClass(Character):
-    def __init__(self, charaName, job, hp, mp, str, vtl, mana, antiAttack, antiMana, speed, alive, way_type, element):
-        self.charaName = charaName
-        self.job = job
-        self.hp = hp
-        self.mp = mp
-        self.str = str
-        self.vtl = vtl
-        self.mana = mana
-        self.antiAttack = antiAttack
-        self.antiMana = antiMana
-        self.speed = speed
-        self.alive = alive
-        self.element = element
-        self.way_type = way_type
-        self.way = 0
-        self.target = 0
+    def __init__(self, charaName, job, hp, mp, strg, vtl, mana, antiAttack, antiMana, speed, alive, way_type, element):
+        self.charaName: str = charaName
+        self.job: str = job
+        self.hp: int = hp
+        self.mp: int = mp
+        self.str: int = strg
+        self.vtl: int = vtl
+        self.mana: int = mana
+        self.antiAttack: int = antiAttack
+        self.antiMana: int = antiMana
+        self.speed: int = speed
+        self.alive: bool = alive
+        self.element: bool = element
+        self.way_type: int = way_type
+        self.way: int = 0
+        self.target: int = 0
         # バックアップ
         self.hp_BU = hp
         self.mp_BU = mp
-        self.str_BU = str
+        self.str_BU = strg
         self.vtl_BU = vtl
         self.mana_BU = mana
         self.antiAttack_BU = antiAttack

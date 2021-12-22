@@ -1,18 +1,18 @@
 from CharacterClass import *
 import os, sys, time, random
 
-TIME = 2
-PARTITION = '-------------------------'
-MAGICNAME = ["通常", "初級ヒール", "中級ヒール", "上級ヒール", "光"]
-STAGENUM = [True, False]
-NOWSTAGE = 0
+TIME: int = 2
+PARTITION: str = '-------------------------'
+MAGICNAME: list[str] = ["通常", "初級ヒール", "中級ヒール", "上級ヒール", "光"]
+STAGENUM: list[bool] = [True, False]
+NOWSTAGE: int = 0
 
 # 戦闘処理
 class Battle(object):
     def __init__(self, Party, Enemy):
-        self.PARTYLENGTH = len(Party) # 味方の人数
-        self.ENEMYLENGTH = len(Enemy) # 敵の人数
-        self.NOWTURN = 1 # 現在のターン
+        self.PARTYLENGTH: int = len(Party) # 味方の人数
+        self.ENEMYLENGTH: int = len(Enemy) # 敵の人数
+        self.NOWTURN: int = 1 # 現在のターン
 
         print(">>戦闘開始\n")
         # 敵とエンカウント表示
@@ -75,8 +75,8 @@ class Battle(object):
                 print(PARTITION*2)
 
                 # 攻撃処理
-                pt_ct = 0
-                em_ct = 0
+                pt_ct: int = 0
+                em_ct: int = 0
                 # 防御表示
                 self._showDefense(Party)
                 time.sleep(TIME)
@@ -280,8 +280,8 @@ class Battle(object):
 
     # 戦闘終了
     def _endBattle(self, Party, Enemy) -> None:
-        party_list = [0 for ch_num in range(self.PARTYLENGTH) if Party[ch_num].hp == 0]
-        enemy_list = [0 for ch_num in range(self.ENEMYLENGTH) if Enemy[ch_num].hp == 0]
+        party_list: list[int] = [0 for ch_num in range(self.PARTYLENGTH) if Party[ch_num].hp == 0]
+        enemy_list: list[int] = [0 for ch_num in range(self.ENEMYLENGTH) if Enemy[ch_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
             print(PARTITION*2)
             time.sleep(TIME)

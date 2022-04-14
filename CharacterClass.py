@@ -1,4 +1,5 @@
 import random, math, time
+import StreamText as st
 from colorama import Back
 
 TIME = 2
@@ -6,14 +7,17 @@ TIME = 2
 class Character(object):
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合攻撃力×0~10%のダメージ
     def physicalAttack(self, Atked, defence):
-        print(f"\n>>{self.charaName}の攻撃")
+        op_text = f"\n>>{self.charaName}の攻撃"
+        st.streamText(op_text)
+        # print(f"\n>>{self.charaName}の攻撃")
         # ミス確率
         miss_prob: list[int] = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/10)))
         # ミス処理
         if miss_prob[0] == miss_prob[1]:
             time.sleep(TIME)
-            print(">>ミス")
+            st.streamText(">>ミス")
+            # print(">>ミス")
             return
         # 物理ダメージ計算
         dmg: int = self.str - (Atked.vtl + random.randint(0, Atked.antiAttack))
@@ -22,16 +26,20 @@ class Character(object):
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/5
+        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
         else: Atked.hp -= dmg
         time.sleep(TIME)
-        print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        op_text = f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた"
+        st.streamText(op_text)
+        # print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
     # 魔法攻撃処理 : ダメージが通りやすいが外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
     def magicalAttack(self, Atked, defence, rate):
-        print(f"\n>>{self.charaName}の攻撃")
+        op_text = f"\n>>{self.charaName}の攻撃"
+        st.streamText(op_text)
+        # print(f"\n>>{self.charaName}の攻撃")
         # 魔法ダメージ計算
         dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
         # ミス確率
@@ -45,21 +53,30 @@ class Character(object):
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/5
+        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
         else: Atked.hp -= dmg
         time.sleep(TIME)
-        print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        op_text = f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた"
+        st.streamText(op_text)
+        # print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
     def heal(self, Healed, rate):
-        print(f"\n>>{self.charaName}のヒール")
+        op_text = f"\n>>{self.charaName}のヒール"
+        st.streamText(op_text)
+        # print(f"\n>>{self.charaName}のヒール")
         heal: int = math.floor((self.mana/3) * rate)
         Healed.hp += heal
         if Healed.hp >= Healed.hp_BU: 
             Healed.hp == Healed.hp_BU
-            print(f"\n>>{Healed.charaName}の体力が最大まで回復した")
-        else: print(f"\n>>{Healed.charaName}の体力が{heal}回復した")
+            op_text = f"\n>>{Healed.charaName}の体力が最大まで回復した"
+            st.streamText(op_text)
+            # print(f"\n>>{Healed.charaName}の体力が最大まで回復した")
+        else:
+            op_text = f"\n>>{Healed.charaName}の体力が{heal}回復した"
+            st.streamText(op_text)
+            # print(f"\n>>{Healed.charaName}の体力が{heal}回復した")
 
     # 死亡処理
     def _noHp(self, Atked):
@@ -67,7 +84,9 @@ class Character(object):
             Atked.hp = 0
             Atked.alive = False
             time.sleep(TIME)
-            print(f"\n>>{Atked.charaName}は倒れた")
+            op_text = f"\n>>{Atked.charaName}は倒れた"
+            st.streamText(op_text)
+            # print(f"\n>>{Atked.charaName}は倒れた")
 
     # クリティカル処理
     def _critical(self, dmg):
@@ -76,7 +95,7 @@ class Character(object):
         # クリティカル処理
         if critical == 1:
             text = '\n>>急所にあたった!\n'
-            dmg = dmg * 2
+            dmg = dmg * 1.6
         else: text = ''
         return dmg, text
 

@@ -1,5 +1,6 @@
 from CharacterClass import *
 import os, sys, time, random
+import StreamText as st
 
 TIME: int = 2
 PARTITION: str = '-------------------------'
@@ -14,7 +15,7 @@ class Battle(object):
         self.ENEMYLENGTH: int = len(Enemy) # 敵の人数
         self.NOWTURN: int = 1 # 現在のターン
 
-        print(">>戦闘開始\n")
+        st.streamText(">>戦闘開始\n")
         # 敵とエンカウント表示
         self._encountEnemy(Enemy) 
         # メインループ開始
@@ -52,7 +53,8 @@ class Battle(object):
                         self._changeElement(Party, ch_num)
                         Party[ch_num].target = None
                     else: # 逃走
-                        print("\n>>一行は逃げ出した")
+                        st.streamText("\n>>一行は逃げ出した")
+                        # print("\n>>一行は逃げ出した")
                         time.sleep(TIME)
                         os.system('cls')
                         return
@@ -162,7 +164,9 @@ class Battle(object):
     # 行動選択
     def _myTurn(self, Party, counter) -> int:
         while(True):
-            print(f"\n--{Party[counter].charaName}はどうする?--")
+            op_text = f"\n--{Party[counter].charaName}はどうする?--"
+            st.streamText(op_text)
+            # print(f"\n--{Party[counter].charaName}はどうする?--")
             time.sleep(TIME)
             print(f"1 : 攻撃\n2 : 防御\n3 : 魔法\n4 : 属性チェンジ\n5 : 逃げる")
             select = input("\n: ")
@@ -181,7 +185,8 @@ class Battle(object):
     # 魔法選択
     def _selectMagic(self, Party, ch_num) -> int:
         while(True):
-            print(f"\n--どの魔法を使う?--")
+            st.streamText("\n--どの魔法を使う?--")
+            # print(f"\n--どの魔法を使う?--")
             time.sleep(TIME)
             for counter in range(len(Party[ch_num].magic)):
                 print(f">>{counter+1} : {Party[ch_num].magic[counter]}")
@@ -200,13 +205,17 @@ class Battle(object):
 
     # 属性変更
     def _changeElement(self, Party, ch_num) -> None:
-        print(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
+        op_text = f"\n>>{Party[ch_num].charaName}は属性を変更した!"
+        st.streamText(op_text)
+        # print(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
         Party[ch_num].element = not Party[ch_num].element
 
     # 味方ターゲット選択
     def _partySelectTarget(self, Enemy, text_1, text_2, length) -> int:
         while(True):
-            print(f"\n>>誰に{text_1}する? : ")
+            op_text = f"\n>>誰に{text_1}する? : "
+            st.streamText(op_text)
+            # print(f"\n>>誰に{text_1}する? : ")
             for x in range(length):
                 print(f"{x+1} : {Enemy[x].charaName}")
             select = input("\n: ")
@@ -270,7 +279,9 @@ class Battle(object):
     def _showDefense(self, Party) -> None:
         for ch_num in range(self.PARTYLENGTH):
             if Party[ch_num].way == 2:
-                print(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
+                op_text = f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった"
+                st.streamText(op_text)
+                # print(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
 
     # def _showDefense(self, Party, num) -> None:
     #     if num >= self.PARTYLENGTH: return
@@ -285,7 +296,8 @@ class Battle(object):
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
             print(PARTITION*2)
             time.sleep(TIME)
-            print(f"\n>>戦闘終了")
+            st.streamText("\n>>戦闘終了")
+            # print(f"\n>>戦闘終了")
             time.sleep(TIME)
             if len(party_list) == self.PARTYLENGTH: print(f"\n>>敗北")
             elif len(enemy_list) == self.ENEMYLENGTH: print(f"\n>>勝利!")
@@ -355,6 +367,7 @@ class Stage(object):
         NOWSTAGE = 2
         return Enemy
 
+# ほんへ
 if __name__ == "__main__":
     os.system('cls')
     # 味方編成

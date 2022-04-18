@@ -10,5 +10,6 @@ def streamText(text):
     print('\n')
 
 if __name__ == '__main__':
+    # てすと
     text = 'あいうえお\nかきくけこ\nさしすせそ\nたちつてと\nなにぬねの\nはひふへほ\nまみむめも\nやゆよ\nらりるれろ\nわをん'
     streamText(text)

@@ -7,9 +7,7 @@ TIME = 2
 class Character(object):
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合攻撃力×0~10%のダメージ
     def physicalAttack(self, Atked, defence):
-        op_text = f"\n>>{self.charaName}の攻撃"
-        st.streamText(op_text)
-        # print(f"\n>>{self.charaName}の攻撃")
+        st.streamText(f"\n>>{self.charaName}の攻撃")
         # ミス確率
         miss_prob: list[int] = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/10)))
@@ -29,17 +27,13 @@ class Character(object):
         if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
         else: Atked.hp -= dmg
         time.sleep(TIME)
-        op_text = f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた"
-        st.streamText(op_text)
-        # print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        st.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
     # 魔法攻撃処理 : ダメージが通りやすいが外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
     def magicalAttack(self, Atked, defence, rate):
-        op_text = f"\n>>{self.charaName}の攻撃"
-        st.streamText(op_text)
-        # print(f"\n>>{self.charaName}の攻撃")
+        st.streamText(f"\n>>{self.charaName}の攻撃")
         # 魔法ダメージ計算
         dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
         # ミス確率
@@ -56,27 +50,19 @@ class Character(object):
         if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
         else: Atked.hp -= dmg
         time.sleep(TIME)
-        op_text = f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた"
-        st.streamText(op_text)
-        # print(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        st.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
         # 死亡処理
         self._noHp(Atked)
 
     def heal(self, Healed, rate):
-        op_text = f"\n>>{self.charaName}のヒール"
-        st.streamText(op_text)
-        # print(f"\n>>{self.charaName}のヒール")
+        st.streamText(f"\n>>{self.charaName}のヒール")
         heal: int = math.floor((self.mana/3) * rate)
         Healed.hp += heal
         if Healed.hp >= Healed.hp_BU: 
             Healed.hp == Healed.hp_BU
-            op_text = f"\n>>{Healed.charaName}の体力が最大まで回復した"
-            st.streamText(op_text)
-            # print(f"\n>>{Healed.charaName}の体力が最大まで回復した")
+            st.streamText(f"\n>>{Healed.charaName}の体力が最大まで回復した")
         else:
-            op_text = f"\n>>{Healed.charaName}の体力が{heal}回復した"
-            st.streamText(op_text)
-            # print(f"\n>>{Healed.charaName}の体力が{heal}回復した")
+            st.streamText(f"\n>>{Healed.charaName}の体力が{heal}回復した")
 
     # 死亡処理
     def _noHp(self, Atked):
@@ -84,9 +70,7 @@ class Character(object):
             Atked.hp = 0
             Atked.alive = False
             time.sleep(TIME)
-            op_text = f"\n>>{Atked.charaName}は倒れた"
-            st.streamText(op_text)
-            # print(f"\n>>{Atked.charaName}は倒れた")
+            st.streamText(f"\n>>{Atked.charaName}は倒れた")
 
     # クリティカル処理
     def _critical(self, dmg):

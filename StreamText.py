@@ -1,4 +1,4 @@
-import time, sys, os
+import time
 
 SLEEP_TIME = 0.15
 
@@ -8,3 +8,7 @@ def streamText(text):
         print(chara, end='', flush=True)
         time.sleep(SLEEP_TIME)
     print('\n')
+
+if __name__ == '__main__':
+    text = 'あいうえお\nかきくけこ\nさしすせそ\nたちつてと\nなにぬねの\nはひふへほ\nまみむめも\nやゆよ\nらりるれろ\nわをん'
+    streamText(text)

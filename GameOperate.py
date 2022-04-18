@@ -24,7 +24,7 @@ class Battle(object):
                 # 表示リセット
                 os.system('cls')
                 # 現在のターン表示
-                print(f"\n>>現在のターン : {self.NOWTURN}\n")
+                st.streamText(f"\n>>現在のターン : {self.NOWTURN}\n")
                 # 敵味方ステータス表示
                 self._showStatuses(Party, Enemy)
                 print(PARTITION*2)
@@ -54,7 +54,8 @@ class Battle(object):
                         Party[ch_num].target = None
                     else: # 逃走
                         st.streamText("\n>>一行は逃げ出した")
-                        # print("\n>>一行は逃げ出した")
+                        global NOWSTAGE
+                        NOWSTAGE -= 1
                         time.sleep(TIME)
                         os.system('cls')
                         return
@@ -91,8 +92,6 @@ class Battle(object):
                                 pt_ct += 1
                                 continue
                             # ターゲット死亡時敵ターゲット選択やり直し
-                            print(pt_ct)
-                            print(Party[pt_ct].target)
                             if Party[pt_ct].way == 3 and "ヒール" in Party[pt_ct].magic[Party[pt_ct].my_magic]:
                                 if Party[Party[pt_ct].target].alive is False:
                                     # ヒールの場合
@@ -164,21 +163,19 @@ class Battle(object):
     # 行動選択
     def _myTurn(self, Party, counter) -> int:
         while(True):
-            op_text = f"\n--{Party[counter].charaName}はどうする?--"
-            st.streamText(op_text)
-            # print(f"\n--{Party[counter].charaName}はどうする?--")
+            st.streamText(f"\n--{Party[counter].charaName}はどうする?--")
             time.sleep(TIME)
             print(f"1 : 攻撃\n2 : 防御\n3 : 魔法\n4 : 属性チェンジ\n5 : 逃げる")
             select = input("\n: ")
             try:
                 select = int(select)
                 if select >= 6 or select <= 0:
-                    print("\n>>入力が間違っています。")
+                    st.streamText("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                print("\n>>入力が間違っています。")
+                st.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select
 
@@ -186,7 +183,6 @@ class Battle(object):
     def _selectMagic(self, Party, ch_num) -> int:
         while(True):
             st.streamText("\n--どの魔法を使う?--")
-            # print(f"\n--どの魔法を使う?--")
             time.sleep(TIME)
             for counter in range(len(Party[ch_num].magic)):
                 print(f">>{counter+1} : {Party[ch_num].magic[counter]}")
@@ -194,44 +190,40 @@ class Battle(object):
             try:
                 select = int(select)
                 if select > len(Party[ch_num].magic) or select <= 0:
-                    print("\n>>入力が間違っています。")
+                    st.streamText("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                print("\n>>入力が間違っています。")
+                st.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select-1
 
     # 属性変更
     def _changeElement(self, Party, ch_num) -> None:
-        op_text = f"\n>>{Party[ch_num].charaName}は属性を変更した!"
-        st.streamText(op_text)
-        # print(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
+        st.streamText(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
         Party[ch_num].element = not Party[ch_num].element
 
     # 味方ターゲット選択
     def _partySelectTarget(self, Enemy, text_1, text_2, length) -> int:
         while(True):
-            op_text = f"\n>>誰に{text_1}する? : "
-            st.streamText(op_text)
-            # print(f"\n>>誰に{text_1}する? : ")
+            st.streamText(f"\n>>誰に{text_1}する? : ")
             for x in range(length):
                 print(f"{x+1} : {Enemy[x].charaName}")
             select = input("\n: ")
             try:
                 select = int(select)
                 if select > length or select <= 0:
-                    print("\n>>入力が間違っています。")
+                    st.streamText("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 elif Enemy[select-1].hp <= 0:
-                    print(f"\n>>{text_2}に攻撃はできません")
+                    st.streamText(f"\n>>{text_2}に攻撃はできません")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                print("\n>>入力が間違っています。")
+                st.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select - 1
 
@@ -279,15 +271,7 @@ class Battle(object):
     def _showDefense(self, Party) -> None:
         for ch_num in range(self.PARTYLENGTH):
             if Party[ch_num].way == 2:
-                op_text = f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった"
-                st.streamText(op_text)
-                # print(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
-
-    # def _showDefense(self, Party, num) -> None:
-    #     if num >= self.PARTYLENGTH: return
-    #     if Party[num].way == 2:
-    #         print(f"\n>>{Party[num].charaName}は防御の姿勢をとった")
-    #     self._showDefense(Party, num+1)
+                st.streamText(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
 
     # 戦闘終了
     def _endBattle(self, Party, Enemy) -> None:
@@ -297,7 +281,6 @@ class Battle(object):
             print(PARTITION*2)
             time.sleep(TIME)
             st.streamText("\n>>戦闘終了")
-            # print(f"\n>>戦闘終了")
             time.sleep(TIME)
             if len(party_list) == self.PARTYLENGTH: print(f"\n>>敗北")
             elif len(enemy_list) == self.ENEMYLENGTH: print(f"\n>>勝利!")
@@ -333,15 +316,15 @@ class Stage(object):
                         os.system('cls')
                         break
                     else:
-                        print("\n>>入力が間違っています。")
+                        st.streamText("\n>>入力が間違っています。")
                 continue
             elif select == "c":
-                print("\n>>ゲームを終了します")
+                st.streamText("\n>>ゲームを終了します")
                 time.sleep(TIME*2)
                 os.system('cls')
                 sys.exit()
             else:
-                print("\n>>入力が間違っています。")
+                st.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
                 os.system('cls')
                 continue

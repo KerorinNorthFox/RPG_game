@@ -9,13 +9,11 @@ class Character(object):
     def physicalAttack(self, Atked, defence):
         st.streamText(f"\n>>{self.charaName}の攻撃")
         # ミス確率
-        miss_prob: list[int] = []
-        for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/10)))
+        miss_prob = self._miss_calc(Atked, 10)
         # ミス処理
         if miss_prob[0] == miss_prob[1]:
             time.sleep(TIME)
             st.streamText(">>ミス")
-            # print(">>ミス")
             return
         # 物理ダメージ計算
         dmg: int = self.str - (Atked.vtl + random.randint(0, Atked.antiAttack))
@@ -24,10 +22,7 @@ class Character(object):
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
-        else: Atked.hp -= dmg
-        time.sleep(TIME)
-        st.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        self._hp_subtraction(defence, Atked, dmg, text)
         # 死亡処理
         self._noHp(Atked)
 
@@ -37,8 +32,7 @@ class Character(object):
         # 魔法ダメージ計算
         dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
         # ミス確率
-        miss_prob: list[int] = []
-        for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/20)))
+        miss_prob = self._miss_calc(Atked, 20)
         # ミス処理
         if miss_prob[0] == miss_prob[1] or dmg <= 0:
             time.sleep(TIME)
@@ -47,10 +41,7 @@ class Character(object):
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
-        else: Atked.hp -= dmg
-        time.sleep(TIME)
-        st.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        self._hp_subtraction(defence, Atked, dmg, text)
         # 死亡処理
         self._noHp(Atked)
 
@@ -63,6 +54,19 @@ class Character(object):
             st.streamText(f"\n>>{Healed.charaName}の体力が最大まで回復した")
         else:
             st.streamText(f"\n>>{Healed.charaName}の体力が{heal}回復した")
+
+    # ミス確率計算
+    def _miss_calc(self, Atked, x):
+        miss_prob: list[int] = []
+        for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/x)))
+        return miss_prob
+
+    # hp減算
+    def _hp_subtraction(self, defence, Atked, dmg, text):
+        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
+        else: Atked.hp -= dmg
+        time.sleep(TIME)
+        st.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
 
     # 死亡処理
     def _noHp(self, Atked):
@@ -87,6 +91,9 @@ class PartyClass(Character):
     def __init__(self, charaName, job, hp, mp, strg, vtl, mana, antiAttack, antiMana, speed, alive, element, magic):
         self.charaName: str = charaName
         self.job: str = job
+        self.level: int = 1
+        self.my_exp: int = 0
+        self.basic_exp = 100
         self.hp: int = hp
         self.mp: int = mp
         self.str: int = strg
@@ -115,7 +122,8 @@ class PartyClass(Character):
     def showStatus(self):
         print(f'''--------------------
 >>Name: {self.charaName}
->>Job: {self.job}''')
+>>Job: {self.job}
+>>Level: {self.level} | 次のレベルまであと{self.basic_exp*self.level-self.my_exp}exp''')
         if self.hp == 0:
             print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
         else:

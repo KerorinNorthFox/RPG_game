@@ -2,15 +2,16 @@ from CharacterClass import *
 import os, sys, time, random
 import StreamText as st
 
-TIME: int = 2
+TIME: float = 1.5
 PARTITION: str = '-------------------------'
 MAGICNAME: list[str] = ["通常", "初級ヒール", "中級ヒール", "上級ヒール", "光"]
 STAGENUM: list[bool] = [True, False]
 NOWSTAGE: int = 0
+EXPERIENCE_POINT: int = 0
 
 # 戦闘処理
 class Battle(object):
-    def __init__(self, Party, Enemy):
+    def __init__(self, Party, Enemy, World):
         self.PARTYLENGTH: int = len(Party) # 味方の人数
         self.ENEMYLENGTH: int = len(Enemy) # 敵の人数
         self.NOWTURN: int = 1 # 現在のターン
@@ -25,6 +26,7 @@ class Battle(object):
                 os.system('cls')
                 # 現在のターン表示
                 st.streamText(f"\n>>現在のターン : {self.NOWTURN}\n")
+                time.sleep(TIME)
                 # 敵味方ステータス表示
                 self._showStatuses(Party, Enemy)
                 print(PARTITION*2)
@@ -54,8 +56,7 @@ class Battle(object):
                         Party[ch_num].target = None
                     else: # 逃走
                         st.streamText("\n>>一行は逃げ出した")
-                        global NOWSTAGE
-                        NOWSTAGE -= 1
+                        World.now_stage = 1
                         time.sleep(TIME)
                         os.system('cls')
                         return
@@ -118,7 +119,7 @@ class Battle(object):
                             break
                     except: pass
                     # 戦闘終了判定
-                    self._endBattle(Party, Enemy)
+                    self._endBattle(Party, Enemy, World)
                     time.sleep(TIME)
                     # 敵攻撃ループ
                     try:
@@ -142,7 +143,7 @@ class Battle(object):
                             break
                     except: pass
                     # 戦闘終了判定
-                    self._endBattle(Party, Enemy)
+                    self._endBattle(Party, Enemy, World)
                     time.sleep(TIME)
                 time.sleep(TIME)
                 self.NOWTURN += 1
@@ -274,7 +275,7 @@ class Battle(object):
                 st.streamText(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
 
     # 戦闘終了
-    def _endBattle(self, Party, Enemy) -> None:
+    def _endBattle(self, Party, Enemy, World) -> None:
         party_list: list[int] = [0 for ch_num in range(self.PARTYLENGTH) if Party[ch_num].hp == 0]
         enemy_list: list[int] = [0 for ch_num in range(self.ENEMYLENGTH) if Enemy[ch_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
@@ -285,11 +286,28 @@ class Battle(object):
             if len(party_list) == self.PARTYLENGTH: print(f"\n>>敗北")
             elif len(enemy_list) == self.ENEMYLENGTH: print(f"\n>>勝利!")
             time.sleep(TIME)
+            self._add_exp(Party, World)
             _ = input("\n続けるには何かキーを入力:")
             raise StopIteration
 
+    # 経験値加算
+    def _add_exp(self, Party, World):
+        st.streamText(f'それぞれが{World.exp}exp手に入れた')
+        time.sleep(TIME)
+        for num in range(self.PARTYLENGTH):
+            Party[num].my_exp += World.exp
+            if Party[num].my_exp >= Party[num].basic_exp*Party[num].level:
+                st.streamText(f'{Party[num].charaName}はレベルアップした!')
+                st.streamText(f'Level{Party[num].level} → {Party[num].level+1}')
+                Party[num].my_exp -= Party[num].basic_exp*Party[num].level
+                Party[num].level += 1
+
 # ステージ管理
 class Stage(object):
+    def __init__(self) -> None:
+        self.now_stage: int = 0
+        self.exp: int = 0
+
     # ステージ表示
     def _showStage(self):
         print(">>名前      : 番号")
@@ -337,8 +355,8 @@ class Stage(object):
     def _oneOne(self) -> list[object]:
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
-        global NOWSTAGE
-        NOWSTAGE = 1
+        self.now_stage = 1
+        self.exp = 100
         return Enemy
 
     # ステージ1-2
@@ -346,8 +364,8 @@ class Stage(object):
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
         Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
-        global NOWSTAGE
-        NOWSTAGE = 2
+        self.now_stage = 2
+        self.exp = 300
         return Enemy
 
 # ほんへ
@@ -365,8 +383,8 @@ if __name__ == "__main__":
         # ステージ選択
         Enemy = World.selectStage(Party)
         # 戦闘処理
-        Battle(Party, Enemy)
+        Battle(Party, Enemy, World)
         # 次ステージ開放
-        try: STAGENUM[NOWSTAGE] = True
+        try: STAGENUM[World.now_stage] = True
         except: pass
         os.system('cls')

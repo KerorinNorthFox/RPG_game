@@ -137,6 +137,17 @@ class PartyClass(Character):
 >>Speed: {self.speed} / {self.speed_BU}
 ''')
 
+    # 経験値加算
+    def add_exp(self, World):
+        self.my_exp += World.exp
+        while(True):
+            if self.my_exp >= self.basic_exp*self.level:
+                st.streamText(f'{self.charaName}はレベルアップした!')
+                st.streamText(f'Level{self.level} → {self.level+1}')
+                self.my_exp -= self.basic_exp*self.level
+                self.level += 1
+            else: break
+
 class EnemyClass(Character):
     def __init__(self, charaName, job, hp, mp, strg, vtl, mana, antiAttack, antiMana, speed, alive, way_type, element):
         self.charaName: str = charaName

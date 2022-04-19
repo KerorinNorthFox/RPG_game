@@ -286,21 +286,12 @@ class Battle(object):
             if len(party_list) == self.PARTYLENGTH: print(f"\n>>敗北")
             elif len(enemy_list) == self.ENEMYLENGTH: print(f"\n>>勝利!")
             time.sleep(TIME)
-            self._add_exp(Party, World)
+            st.streamText(f'\nそれぞれが{World.exp}exp手に入れた')
+            time.sleep(TIME)
+            for num in range(self.PARTYLENGTH):
+                Party[num].add_exp(World)
             _ = input("\n続けるには何かキーを入力:")
             raise StopIteration
-
-    # 経験値加算
-    def _add_exp(self, Party, World):
-        st.streamText(f'それぞれが{World.exp}exp手に入れた')
-        time.sleep(TIME)
-        for num in range(self.PARTYLENGTH):
-            Party[num].my_exp += World.exp
-            if Party[num].my_exp >= Party[num].basic_exp*Party[num].level:
-                st.streamText(f'{Party[num].charaName}はレベルアップした!')
-                st.streamText(f'Level{Party[num].level} → {Party[num].level+1}')
-                Party[num].my_exp -= Party[num].basic_exp*Party[num].level
-                Party[num].level += 1
 
 # ステージ管理
 class Stage(object):

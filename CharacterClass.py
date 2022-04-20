@@ -1,19 +1,20 @@
 import random, math, time
-import StreamText as st
+import StreamTextModule as stm
 from colorama import Back
 
-TIME = 2
+PARTITION: str = '-------------------------'
+TIME: float = 1.5
 
 class Character(object):
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合攻撃力×0~10%のダメージ
     def physicalAttack(self, Atked, defence):
-        st.streamText(f"\n>>{self.charaName}の攻撃")
+        stm.streamText(f"\n>>{self.charaName}の攻撃")
         # ミス確率
         miss_prob = self._miss_calc(Atked, 10)
         # ミス処理
         if miss_prob[0] == miss_prob[1]:
             time.sleep(TIME)
-            st.streamText(">>ミス")
+            stm.streamText(">>ミス")
             return
         # 物理ダメージ計算
         dmg: int = self.str - (Atked.vtl + random.randint(0, Atked.antiAttack))
@@ -28,7 +29,7 @@ class Character(object):
 
     # 魔法攻撃処理 : ダメージが通りやすいが外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
     def magicalAttack(self, Atked, defence, rate):
-        st.streamText(f"\n>>{self.charaName}の攻撃")
+        stm.streamText(f"\n>>{self.charaName}の攻撃")
         # 魔法ダメージ計算
         dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.antiMana))
         # ミス確率
@@ -46,14 +47,17 @@ class Character(object):
         self._noHp(Atked)
 
     def heal(self, Healed, rate):
-        st.streamText(f"\n>>{self.charaName}のヒール")
+        stm.streamText(f"\n>>{self.charaName}のヒール")
+        if Healed.hp == Healed.hp_BU:
+            stm.streamText('>>これ以上回復できない')
+            return
         heal: int = math.floor((self.mana/3) * rate)
         Healed.hp += heal
         if Healed.hp >= Healed.hp_BU: 
             Healed.hp == Healed.hp_BU
-            st.streamText(f"\n>>{Healed.charaName}の体力が最大まで回復した")
+            stm.streamText(f"\n>>{Healed.charaName}の体力が最大まで回復した")
         else:
-            st.streamText(f"\n>>{Healed.charaName}の体力が{heal}回復した")
+            stm.streamText(f"\n>>{Healed.charaName}の体力が{heal}回復した")
 
     # ミス確率計算
     def _miss_calc(self, Atked, x):
@@ -66,7 +70,7 @@ class Character(object):
         if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
         else: Atked.hp -= dmg
         time.sleep(TIME)
-        st.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
+        stm.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
 
     # 死亡処理
     def _noHp(self, Atked):
@@ -74,7 +78,7 @@ class Character(object):
             Atked.hp = 0
             Atked.alive = False
             time.sleep(TIME)
-            st.streamText(f"\n>>{Atked.charaName}は倒れた")
+            stm.streamText(f"\n>>{Atked.charaName}は倒れた")
 
     # クリティカル処理
     def _critical(self, dmg):
@@ -93,7 +97,7 @@ class PartyClass(Character):
         self.job: str = job
         self.level: int = 1
         self.my_exp: int = 0
-        self.basic_exp = 100
+        self.basic_exp: int = 100
         self.hp: int = hp
         self.mp: int = mp
         self.str: int = strg
@@ -139,14 +143,57 @@ class PartyClass(Character):
 
     # 経験値加算
     def add_exp(self, World):
+        # 加算
         self.my_exp += World.exp
         while(True):
             if self.my_exp >= self.basic_exp*self.level:
-                st.streamText(f'{self.charaName}はレベルアップした!')
-                st.streamText(f'Level{self.level} → {self.level+1}')
+                print(PARTITION)
+                stm.streamText(f'{self.charaName}はレベルアップした!')
+                stm.streamText(f'Level{self.level} → {self.level+1}')
+                self._add_to_status()
+                self._levelup_status_show()
+                time.sleep(TIME)
                 self.my_exp -= self.basic_exp*self.level
                 self.level += 1
             else: break
+
+    # ステータス加算
+    def _add_to_status(self):
+        self.hp += 10
+        self.hp_BU += 10
+        if self.mp_BU != 0:
+            self.mp += 4
+            self.mp_BU += 4
+        if self.str_BU != 0:
+            self.str += 10
+            self.str_BU += 10
+        if self.vtl_BU != 0:
+            self.vtl += 8
+            self.vtl_BU += 8
+        if self.mana_BU != 0:
+            self.mana += 10
+            self.mana_BU += 10
+        if self.antiAttack_BU != 0:
+            self.antiAttack += 3
+            self.antiAttack_BU += 3
+        if self.antiMana_BU != 0:
+            self.antiMana += 3
+            self.antiMana_BU += 3
+        if self.speed_BU != 0:
+            self.speed += 5
+            self.speed_BU += 5
+
+    # レベルアップ時ステータス表示
+    def _levelup_status_show(self):
+        stm.streamText(f'''>>HP: {self.hp_BU} (↑10)
+>>MP: {self.mp_BU} (↑4)
+>>STR: {self.str_BU} (↑10)
+>>VTL: {self.vtl_BU} (↑8)
+>>Mana: {self.mana_BU} (↑10)
+>>AATK: {self.antiAttack_BU} (↑3)
+>>AMana: {self.antiMana_BU} (↑3)
+>>Speed: {self.speed_BU} (↑5)
+''', sleep_time=0.01)
 
 class EnemyClass(Character):
     def __init__(self, charaName, job, hp, mp, strg, vtl, mana, antiAttack, antiMana, speed, alive, way_type, element):

@@ -1,13 +1,11 @@
 from CharacterClass import *
-import os, sys, time, random
-import StreamText as st
+import os, sys, time, random, config
+import StreamTextModule as stm
 
+PARTY_INFO = config.party_info
+MAGIC_NAME: list[str] = config.magic_name
 TIME: float = 1.5
 PARTITION: str = '-------------------------'
-MAGICNAME: list[str] = ["通常", "初級ヒール", "中級ヒール", "上級ヒール", "光"]
-STAGENUM: list[bool] = [True, False]
-NOWSTAGE: int = 0
-EXPERIENCE_POINT: int = 0
 
 # 戦闘処理
 class Battle(object):
@@ -16,7 +14,7 @@ class Battle(object):
         self.ENEMYLENGTH: int = len(Enemy) # 敵の人数
         self.NOWTURN: int = 1 # 現在のターン
 
-        st.streamText(">>戦闘開始\n")
+        stm.streamText(">>戦闘開始\n")
         # 敵とエンカウント表示
         self._encountEnemy(Enemy) 
         # メインループ開始
@@ -25,7 +23,7 @@ class Battle(object):
                 # 表示リセット
                 os.system('cls')
                 # 現在のターン表示
-                st.streamText(f"\n>>現在のターン : {self.NOWTURN}\n")
+                stm.streamText(f"\n>>現在のターン : {self.NOWTURN}\n")
                 time.sleep(TIME)
                 # 敵味方ステータス表示
                 self._showStatuses(Party, Enemy)
@@ -55,8 +53,8 @@ class Battle(object):
                         self._changeElement(Party, ch_num)
                         Party[ch_num].target = None
                     else: # 逃走
-                        st.streamText("\n>>一行は逃げ出した")
-                        World.now_stage = 1
+                        stm.streamText("\n>>一行は逃げ出した")
+                        World.now_stage = 0
                         time.sleep(TIME)
                         os.system('cls')
                         return
@@ -164,26 +162,26 @@ class Battle(object):
     # 行動選択
     def _myTurn(self, Party, counter) -> int:
         while(True):
-            st.streamText(f"\n--{Party[counter].charaName}はどうする?--")
+            stm.streamText(f"\n--{Party[counter].charaName}はどうする?--")
             time.sleep(TIME)
             print(f"1 : 攻撃\n2 : 防御\n3 : 魔法\n4 : 属性チェンジ\n5 : 逃げる")
             select = input("\n: ")
             try:
                 select = int(select)
                 if select >= 6 or select <= 0:
-                    st.streamText("\n>>入力が間違っています。")
+                    stm.streamText("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                st.streamText("\n>>入力が間違っています。")
+                stm.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select
 
     # 魔法選択
     def _selectMagic(self, Party, ch_num) -> int:
         while(True):
-            st.streamText("\n--どの魔法を使う?--")
+            stm.streamText("\n--どの魔法を使う?--")
             time.sleep(TIME)
             for counter in range(len(Party[ch_num].magic)):
                 print(f">>{counter+1} : {Party[ch_num].magic[counter]}")
@@ -191,40 +189,40 @@ class Battle(object):
             try:
                 select = int(select)
                 if select > len(Party[ch_num].magic) or select <= 0:
-                    st.streamText("\n>>入力が間違っています。")
+                    stm.streamText("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                st.streamText("\n>>入力が間違っています。")
+                stm.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select-1
 
     # 属性変更
     def _changeElement(self, Party, ch_num) -> None:
-        st.streamText(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
+        stm.streamText(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
         Party[ch_num].element = not Party[ch_num].element
 
     # 味方ターゲット選択
     def _partySelectTarget(self, Enemy, text_1, text_2, length) -> int:
         while(True):
-            st.streamText(f"\n>>誰に{text_1}する? : ")
+            stm.streamText(f"\n>>誰に{text_1}する? : ")
             for x in range(length):
                 print(f"{x+1} : {Enemy[x].charaName}")
             select = input("\n: ")
             try:
                 select = int(select)
                 if select > length or select <= 0:
-                    st.streamText("\n>>入力が間違っています。")
+                    stm.streamText("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 elif Enemy[select-1].hp <= 0:
-                    st.streamText(f"\n>>{text_2}に攻撃はできません")
+                    stm.streamText(f"\n>>{text_2}に攻撃はできません")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                st.streamText("\n>>入力が間違っています。")
+                stm.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select - 1
 
@@ -249,13 +247,13 @@ class Battle(object):
 
     # 魔法種類別処理
     def _magicProcess(self, Party, Enemy, counter, magic_rate) -> None:
-        if MAGICNAME[1] == Party[counter].magic[Party[counter].my_magic]: # 初級ヒール
+        if MAGIC_NAME[1] == Party[counter].magic[Party[counter].my_magic]: # 初級ヒール
             Party[counter].heal(Party[Party[counter].target], 1.0)
-        elif MAGICNAME[2] == Party[counter].magic[Party[counter].my_magic]: # 中級ヒール
+        elif MAGIC_NAME[2] == Party[counter].magic[Party[counter].my_magic]: # 中級ヒール
             Party[counter].heal(Party[Party[counter].target], 1.5)
-        elif MAGICNAME[3] == Party[counter].magic[Party[counter].my_magic]: # 上級ヒール
+        elif MAGIC_NAME[3] == Party[counter].magic[Party[counter].my_magic]: # 上級ヒール
             Party[counter].heal(Party[Party[counter].target], 2.0)
-        elif MAGICNAME[4] == Party[counter].magic[Party[counter].my_magic]:
+        elif MAGIC_NAME[4] == Party[counter].magic[Party[counter].my_magic]:
             if Enemy[Party[counter].target].element is False: rate = 1.2
             else: rate = 0.6
             Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate * rate)
@@ -272,21 +270,21 @@ class Battle(object):
     def _showDefense(self, Party) -> None:
         for ch_num in range(self.PARTYLENGTH):
             if Party[ch_num].way == 2:
-                st.streamText(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
+                stm.streamText(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
 
     # 戦闘終了
     def _endBattle(self, Party, Enemy, World) -> None:
         party_list: list[int] = [0 for ch_num in range(self.PARTYLENGTH) if Party[ch_num].hp == 0]
         enemy_list: list[int] = [0 for ch_num in range(self.ENEMYLENGTH) if Enemy[ch_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
-            print(PARTITION*2)
             time.sleep(TIME)
-            st.streamText("\n>>戦闘終了")
+            os.system('cls')
+            stm.streamText("\n>>戦闘終了")
             time.sleep(TIME)
             if len(party_list) == self.PARTYLENGTH: print(f"\n>>敗北")
             elif len(enemy_list) == self.ENEMYLENGTH: print(f"\n>>勝利!")
             time.sleep(TIME)
-            st.streamText(f'\nそれぞれが{World.exp}exp手に入れた')
+            stm.streamText(f'\nそれぞれが{World.exp}exp手に入れた')
             time.sleep(TIME)
             for num in range(self.PARTYLENGTH):
                 Party[num].add_exp(World)
@@ -296,15 +294,17 @@ class Battle(object):
 # ステージ管理
 class Stage(object):
     def __init__(self) -> None:
+        self.stage_num: list[bool] = [True, False]
         self.now_stage: int = 0
         self.exp: int = 0
 
     # ステージ表示
     def _showStage(self):
+        print(self.stage_num)
         print(">>名前      : 番号")
         print(PARTITION)
-        for num in range(len(STAGENUM)):
-            if STAGENUM[num] == True:
+        for num in range(len(self.stage_num)):
+            if self.stage_num[num] == True:
                 print(f">>ステージ{num+1} : {num+1}") 
 
     # ステージ選択 : 敵編成を返す
@@ -314,8 +314,8 @@ class Stage(object):
             self._showStage()
             select = input("\n>>ステージを選択してください(Pキーで味方ステータス表示, cキーでゲーム終了) : ")
             # ステージ敵セット
-            if select == "1" and STAGENUM[0] is True: Enemy = self._oneOne()
-            elif select == "2" and STAGENUM[1] is True: Enemy = self._oneTwo()
+            if select == "1" and self.stage_num[0] is True: Enemy = self._oneOne()
+            elif select == "2" and self.stage_num[1] is True: Enemy = self._oneTwo()
             elif select == "p":
                 os.system('cls')
                 for x in range(len(Party)): Party[x].showStatus()
@@ -325,15 +325,15 @@ class Stage(object):
                         os.system('cls')
                         break
                     else:
-                        st.streamText("\n>>入力が間違っています。")
+                        stm.streamText("\n>>入力が間違っています。")
                 continue
             elif select == "c":
-                st.streamText("\n>>ゲームを終了します")
+                stm.streamText("\n>>ゲームを終了します")
                 time.sleep(TIME*2)
                 os.system('cls')
                 sys.exit()
             else:
-                st.streamText("\n>>入力が間違っています。")
+                stm.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
                 os.system('cls')
                 continue
@@ -364,18 +364,20 @@ if __name__ == "__main__":
     os.system('cls')
     # 味方編成
     Party = []
-    Party.append(PartyClass("勇者", "Hero", 200, 10, 100, 30, 10, 10, 5, 50, True, True, ["通常", "初級ヒール"]))
-    Party.append(PartyClass("剣士", "Fencer", 200, 0, 150, 30, 0, 10, 5, 50, True, True, ["通常"]))
-    Party.append(PartyClass("魔法使い", "Wizard", 200, 50, 30, 30, 100, 5, 10, 50, True, True, ["通常", "中級ヒール", "光"]))
-    Party.append(PartyClass("賢者", "Sage", 200, 50, 0, 30, 100, 5, 10, 50, True, True, ["通常", "上級ヒール", "光"]))
+    Party.append(PartyClass(*PARTY_INFO[0]))
+    Party.append(PartyClass(*PARTY_INFO[1]))
+    Party.append(PartyClass(*PARTY_INFO[2]))
+    Party.append(PartyClass(*PARTY_INFO[3]))
+    World = Stage()
     # 本編開始
     while(True):
-        World = Stage()
         # ステージ選択
         Enemy = World.selectStage(Party)
         # 戦闘処理
         Battle(Party, Enemy, World)
         # 次ステージ開放
-        try: STAGENUM[World.now_stage] = True
-        except: pass
+        # try:
+        World.stage_num[World.now_stage] = True
+        World.stage_num.append(False)
+        # except: pass
         os.system('cls')

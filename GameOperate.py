@@ -2,7 +2,7 @@ from CharacterClass import *
 import os, sys, time, random, config
 import StreamTextModule as stm
 
-PARTY_INFO = config.party_info
+CHARA_INFO = config.chara_info
 MAGIC_NAME: list[str] = config.magic_name
 TIME: float = 1.5
 PARTITION: str = '-------------------------'
@@ -149,18 +149,18 @@ class Battle(object):
 
 
     # 敵とエンカウント表示
-    def _encountEnemy(self, Enemy) -> None:
+    def _encountEnemy(self, Enemy):
         for ch_num in range(self.ENEMYLENGTH): print(f">>{Enemy[ch_num].charaName}が現れた!")
         time.sleep(TIME*2)
     
     # 敵味方のステータスを表示
-    def _showStatuses(self, Party, Enemy) -> None:
+    def _showStatuses(self, Party, Enemy):
         for x in range(self.PARTYLENGTH): Party[x].showStatus()
         for y in range(self.ENEMYLENGTH): Enemy[y].showStatus()
         time.sleep(TIME)
 
     # 行動選択
-    def _myTurn(self, Party, counter) -> int:
+    def _myTurn(self, Party, counter):
         while(True):
             stm.streamText(f"\n--{Party[counter].charaName}はどうする?--")
             time.sleep(TIME)
@@ -179,7 +179,7 @@ class Battle(object):
         return select
 
     # 魔法選択
-    def _selectMagic(self, Party, ch_num) -> int:
+    def _selectMagic(self, Party, ch_num):
         while(True):
             stm.streamText("\n--どの魔法を使う?--")
             time.sleep(TIME)
@@ -199,12 +199,12 @@ class Battle(object):
         return select-1
 
     # 属性変更
-    def _changeElement(self, Party, ch_num) -> None:
+    def _changeElement(self, Party, ch_num):
         stm.streamText(f"\n>>{Party[ch_num].charaName}は属性を変更した!")
         Party[ch_num].element = not Party[ch_num].element
 
     # 味方ターゲット選択
-    def _partySelectTarget(self, Enemy, text_1, text_2, length) -> int:
+    def _partySelectTarget(self, Enemy, text_1, text_2, length):
         while(True):
             stm.streamText(f"\n>>誰に{text_1}する? : ")
             for x in range(length):
@@ -227,7 +227,7 @@ class Battle(object):
         return select - 1
 
     # 敵ターゲット選択
-    def _enemySelectTarget(self, Party) -> int:
+    def _enemySelectTarget(self, Party):
         while(True):
             select = random.randint(0, self.PARTYLENGTH-1)
             if Party[select].alive is False:
@@ -236,7 +236,7 @@ class Battle(object):
         return select
 
     # 魔法レート設定
-    def _setMagicRate(self, Party, Enemy, counter) -> float:
+    def _setMagicRate(self, Party, Enemy, counter):
         # ヒールの場合例外
         if "ヒール" in Party[counter].magic[Party[counter].my_magic]:
             magic_rate = 1.4
@@ -246,7 +246,7 @@ class Battle(object):
         return magic_rate
 
     # 魔法種類別処理
-    def _magicProcess(self, Party, Enemy, counter, magic_rate) -> None:
+    def _magicProcess(self, Party, Enemy, counter, magic_rate):
         if MAGIC_NAME[1] == Party[counter].magic[Party[counter].my_magic]: # 初級ヒール
             Party[counter].heal(Party[Party[counter].target], 1.0)
         elif MAGIC_NAME[2] == Party[counter].magic[Party[counter].my_magic]: # 中級ヒール
@@ -254,26 +254,20 @@ class Battle(object):
         elif MAGIC_NAME[3] == Party[counter].magic[Party[counter].my_magic]: # 上級ヒール
             Party[counter].heal(Party[Party[counter].target], 2.0)
         elif MAGIC_NAME[4] == Party[counter].magic[Party[counter].my_magic]:
-            if Enemy[Party[counter].target].element is False: rate = 1.2
-            else: rate = 0.6
+            if Enemy[Party[counter].target].element is False: rate = 1.3
+            else: rate = 0.2
             Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate * rate)
-        # elif "" == Party[counter].magic[Party[counter].my_magic]:
-        #     Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate)
-        # elif "" == Party[counter].magic[Party[counter].my_magic]:
-        #     Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate)
-        # elif "" == Party[counter].magic[Party[counter].my_magic]:
-        #     Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate)
         else: # 通常
             Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate)
 
     # 防御表示
-    def _showDefense(self, Party) -> None:
+    def _showDefense(self, Party):
         for ch_num in range(self.PARTYLENGTH):
             if Party[ch_num].way == 2:
                 stm.streamText(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
 
     # 戦闘終了
-    def _endBattle(self, Party, Enemy, World) -> None:
+    def _endBattle(self, Party, Enemy, World):
         party_list: list[int] = [0 for ch_num in range(self.PARTYLENGTH) if Party[ch_num].hp == 0]
         enemy_list: list[int] = [0 for ch_num in range(self.ENEMYLENGTH) if Enemy[ch_num].hp == 0]
         if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
@@ -288,19 +282,23 @@ class Battle(object):
             time.sleep(TIME)
             for num in range(self.PARTYLENGTH):
                 Party[num].add_exp(World)
+            stm.streamText(f'\n{World.skill_point}のスキルポイントを手に入れた')
+            if World.new_chara != None:
+                os.system('cls')
+                stm.streamText(f'新しいキャラクターが仲間になりました: {CHARA_INFO[World.new_chara][0]} level 1')
+                stm.streamText('編成画面からパーティーに加えれます')
+                World.new_chara = None
             _ = input("\n続けるには何かキーを入力:")
             raise StopIteration
 
 # ステージ管理
 class Stage(object):
-    def __init__(self) -> None:
+    def __init__(self):
         self.stage_num: list[bool] = [True, False]
-        self.now_stage: int = 0
-        self.exp: int = 0
+        self.new_chara: int = None
 
     # ステージ表示
     def _showStage(self):
-        print(self.stage_num)
         print(">>名前      : 番号")
         print(PARTITION)
         for num in range(len(self.stage_num)):
@@ -308,7 +306,7 @@ class Stage(object):
                 print(f">>ステージ{num+1} : {num+1}") 
 
     # ステージ選択 : 敵編成を返す
-    def selectStage(self, Party) -> list[object]:
+    def selectStage(self, Party):
         while(True):
             # プレイ可能ステージ表示
             self._showStage()
@@ -316,6 +314,7 @@ class Stage(object):
             # ステージ敵セット
             if select == "1" and self.stage_num[0] is True: Enemy = self._oneOne()
             elif select == "2" and self.stage_num[1] is True: Enemy = self._oneTwo()
+            # ステータス表示画面
             elif select == "p":
                 os.system('cls')
                 for x in range(len(Party)): Party[x].showStatus()
@@ -343,31 +342,73 @@ class Stage(object):
         return Enemy
 
     # ステージ1-1
-    def _oneOne(self) -> list[object]:
+    def _oneOne(self):
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
         self.now_stage = 1
         self.exp = 100
+        self.skill_point = 10
         return Enemy
 
     # ステージ1-2
-    def _oneTwo(self) -> list[object]:
+    def _oneTwo(self):
         Enemy = []
         Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
         Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
         self.now_stage = 2
         self.exp = 300
+        self.skill_point = 20
         return Enemy
+
+    # ステージ1-3
+    def _oneThree(self):
+        Enemy = []
+        Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        Enemy.append(EnemyClass("敵C", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        Enemy.append(EnemyClass("敵D", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, 0, False))
+        self.now_stage = 3
+        self.exp = 500
+        self.skill_point = 40
+        self.new_chara = 4
+        return Enemy
+
+# ゲーム説明
+def game_explain():
+    print(PARTITION*2)
+    print('''これはCUIで遊べるRPGゲームのようなものです。
+実装状況: ステージ3まで
+==属性について==
+このゲームには光と闇の二属性があり(増える予定あり)
+"光"と"闇"という名前の魔法も実装されています。
+自分と同じ属性の相手に魔法を使うとあまり効果がありませんが、
+違う属性の相手に魔法を使うとダメージが加算されます。
+例) 自分(攻撃): 光　相手: 光　→　ダメージ↓
+    自分(攻撃): 光　相手: 闇　→　ダメージ↑
+属性チェンジをすると自分の属性を変えられるので属性を変えて大ダメージを狙うこともできます。
+また敵はこの属性攻撃をしてきません。
+''')    
+    print(PARTITION*2)
+    _ = input(">>続けるには何かキーを入力してください: ")
 
 # ほんへ
 if __name__ == "__main__":
-    os.system('cls')
-    # 味方編成
+    # ゲーム説明
+    while(True):
+        os.system('cls')
+        select = input('>>ゲーム説明を見ますか?[y/n]: ')
+        if select.lower() == 'y':
+            game_explain()
+        elif select.lower() == 'n': break
+        else:
+            print('>>入力が間違っています')
+            time.sleep(TIME)
+    # 初期味方編成
     Party = []
-    Party.append(PartyClass(*PARTY_INFO[0]))
-    Party.append(PartyClass(*PARTY_INFO[1]))
-    Party.append(PartyClass(*PARTY_INFO[2]))
-    Party.append(PartyClass(*PARTY_INFO[3]))
+    Party.append(PartyClass(*CHARA_INFO[0]))
+    Party.append(PartyClass(*CHARA_INFO[1]))
+    Party.append(PartyClass(*CHARA_INFO[2]))
+    Party.append(PartyClass(*CHARA_INFO[3]))
     World = Stage()
     # 本編開始
     while(True):

@@ -253,8 +253,12 @@ class Battle(object):
             Party[counter].heal(Party[Party[counter].target], 1.5)
         elif MAGIC_NAME[3] == Party[counter].magic[Party[counter].my_magic]: # 上級ヒール
             Party[counter].heal(Party[Party[counter].target], 2.0)
-        elif MAGIC_NAME[4] == Party[counter].magic[Party[counter].my_magic]:
+        elif MAGIC_NAME[4] == Party[counter].magic[Party[counter].my_magic]: # 光
             if Enemy[Party[counter].target].element is False: rate = 1.3
+            else: rate = 0.2
+            Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate * rate)
+        elif MAGIC_NAME[5] == Party[counter].magic[Party[counter].my_magic]:# 闇
+            if Enemy[Party[counter].target].element is True: rate = 1.3
             else: rate = 0.2
             Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate * rate)
         else: # 通常
@@ -283,6 +287,7 @@ class Battle(object):
             for num in range(self.PARTYLENGTH):
                 Party[num].add_exp(World)
             stm.streamText(f'\n{World.skill_point}のスキルポイントを手に入れた')
+            World.all_skill_point += World.skill_point
             if World.new_chara != None:
                 os.system('cls')
                 stm.streamText(f'新しいキャラクターが仲間になりました: {CHARA_INFO[World.new_chara][0]} level 1')
@@ -296,6 +301,7 @@ class Stage(object):
     def __init__(self):
         self.stage_num: list[bool] = [True, False]
         self.new_chara: int = None
+        self._all_skill_point: int = 0
 
     # ステージ表示
     def _showStage(self):
@@ -315,22 +321,12 @@ class Stage(object):
             if select == "1" and self.stage_num[0] is True: Enemy = self._oneOne()
             elif select == "2" and self.stage_num[1] is True: Enemy = self._oneTwo()
             # ステータス表示画面
-            elif select == "p":
-                os.system('cls')
-                for x in range(len(Party)): Party[x].showStatus()
-                while(True):
-                    key = input("\n>>戻るにはPキーを押してください。 :")
-                    if key == "p":
-                        os.system('cls')
-                        break
-                    else:
-                        stm.streamText("\n>>入力が間違っています。")
+            elif select.lower() == "p":
+                # メニュー表示
+                self._menu_show(Party)
                 continue
-            elif select == "c":
-                stm.streamText("\n>>ゲームを終了します")
-                time.sleep(TIME*2)
-                os.system('cls')
-                sys.exit()
+            # ゲーム終了
+            elif select.lower() == "c": self._end_game()
             else:
                 stm.streamText("\n>>入力が間違っています。")
                 time.sleep(TIME)
@@ -340,6 +336,34 @@ class Stage(object):
         time.sleep(TIME)
         os.system('cls')
         return Enemy
+
+    # メニュー画面
+    def _menu_show(self, Party):
+        os.system('cls')
+        # ステータス表示
+        for x in range(len(Party)): Party[x].showStatus()
+        while(True):
+            stm.streamText('--メニュー--')
+            print("1: スキルポイント振り分け\n2: 編成\np: もどる")
+            key = input(": ")
+            if key == '1': self._skill()
+            elif key.lower() == "p":
+                os.system('cls')
+                break
+            else:
+                stm.streamText("\n>>入力が間違っています。")
+
+    # スキルポイント振り分け画面
+    def _skill(self):
+        os.system('cls')
+        stm.streamText('>>誰に振り分ける?')
+
+    # ゲーム終了
+    def _end_game(self):
+        stm.streamText("\n>>ゲームを終了します")
+        time.sleep(TIME*2)
+        os.system('cls')
+        sys.exit()
 
     # ステージ1-1
     def _oneOne(self):
@@ -399,6 +423,7 @@ if __name__ == "__main__":
         select = input('>>ゲーム説明を見ますか?[y/n]: ')
         if select.lower() == 'y':
             game_explain()
+            break
         elif select.lower() == 'n': break
         else:
             print('>>入力が間違っています')
@@ -412,6 +437,7 @@ if __name__ == "__main__":
     World = Stage()
     # 本編開始
     while(True):
+        os.system('cls')
         # ステージ選択
         Enemy = World.selectStage(Party)
         # 戦闘処理
@@ -421,4 +447,3 @@ if __name__ == "__main__":
         World.stage_num[World.now_stage] = True
         World.stage_num.append(False)
         # except: pass
-        os.system('cls')

@@ -128,10 +128,10 @@ class PartyClass(Character):
 >>Name: {self.charaName}
 >>Job: {self.job}
 >>Level: {self.level} | 次のレベルまであと{self.basic_exp*self.level-self.my_exp}exp''')
-        if self.hp == 0:
-            print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
-        else:
-            print(f">>HP: {self.hp} / {self.hp_BU}")
+        if self.element is True: print(">>Element: 光")
+        else: print(">>Element: 闇")
+        if self.hp == 0: print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
+        else: print(f">>HP: {self.hp} / {self.hp_BU}")
         print(f'''>>MP: {self.mp} / {self.mp_BU}
 >>STR: {self.str} / {self.str_BU}
 >>VTL: {self.vtl} / {self.vtl_BU}
@@ -148,8 +148,8 @@ class PartyClass(Character):
         while(True):
             if self.my_exp >= self.basic_exp*self.level:
                 print(PARTITION)
-                stm.streamText(f'{self.charaName}はレベルアップした!')
-                stm.streamText(f'Level{self.level} → {self.level+1}')
+                stm.streamText(f'>>{self.charaName}はレベルアップした!')
+                stm.streamText(f'>>Level{self.level} → {self.level+1}')
                 self._add_to_status()
                 self._levelup_status_show()
                 time.sleep(TIME)
@@ -228,6 +228,8 @@ class EnemyClass(Character):
         print(f'''--------------------
 >>Name: {self.charaName}
 >>Job: {self.job}''')
+        if self.element is True: print(">>Element: 光")
+        else: print(">>Element: 闇")
         if self.hp == 0:
             print(f">>HP: {Back.RED + str(self.hp)} / {str(self.hp_BU) + Back.RESET}")
         else:

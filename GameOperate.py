@@ -359,19 +359,23 @@ class Stage(object):
 
     # スキルポイント振り分け画面
     def _skill_point_show(self, Party):
-        os.system('cls')
-        stm.streamText(f'>>現在のスキルポイントは{self._all_skill_point}です')
-        stm.streamText('\n>>誰に振り分ける?')
-        for num in range(len(Party)):
-            print(f'{num+1}: {Party[num].charaName}')
-        select = input(': ')
-        self._point_assign(select, Party)
+        while(True):
+            os.system('cls')
+            stm.streamText(f'>>現在のスキルポイントは{self._all_skill_point}です')
+            stm.streamText('\n>>誰に振り分ける?')
+            for num in range(len(Party)):
+                print(f'{num+1}: {Party[num].charaName}')
+            select = input(': ')
+            if int(select) <= len(Party) or int(select) > 0: break
+            stm.streamText('>>入力が間違っています')
+        self._point_assign(int(select), Party)
         os.system('cls')
 
     def _point_assign(self, select, Party):
-        os.system('cls')
-        stm.streamText('>>どのステータスに振り分ける?')
-        print('''1: HP
+        while(True):
+            os.system('cls')
+            stm.streamText('>>どのステータスに振り分ける?')
+            print('''1: HP
 2: MP
 3: STR
 4: VTL
@@ -379,19 +383,16 @@ class Stage(object):
 6: AATK
 7: AMana
 8: Speed''')
-        status_select = input(": ")
-        os.sysem('cls')
-        stm.streamText('>>どれだけ振り分ける?')
-        num = input(": ")
-        # 振り分け
-        if status_select == '1': Party[select].hp += num
-        elif status_select == '2': Party[select].mp += num
-        elif status_select == '3': Party[select].str += num
-        elif status_select == '4': Party[select].vtl += num
-        elif status_select == '5': Party[select].mana += num
-        elif status_select == '6': Party[select].antiAttack += num
-        elif status_select == '7': Party[select].antiMana += num
-        elif status_select == '8': Party[select].speed += num
+            status_select = input(": ")
+            if int(status_select) < 9 or int(status_select) > 0: break
+            stm.streamText('>>入力が間違っています')
+        while(True):
+            os.sysem('cls')
+            stm.streamText('>>どれだけ振り分ける?')
+            num = input(": ")
+            if num <= self._all_skill_point: break
+            stm.streamText('>>入力値が多きすぎます')
+        Party[select].point_assign(int(status_select), int(num)
         stm.streamText('>>振り分け完了')
  
     # ゲーム終了
@@ -430,7 +431,6 @@ class Stage(object):
         self.now_stage = 3
         self.exp = 500
         self.skill_point = 40
-        self.new_chara = 4
         return Enemy
 
 # ゲーム説明

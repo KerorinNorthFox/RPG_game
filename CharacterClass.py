@@ -198,6 +198,14 @@ class PartyClass(Character):
 >>AMana: {self.antiMana_BU} (↑3)
 >>Speed: {self.speed_BU} (↑5)
 ''', sleep_time=0.01)
+        
+    # ポイント振り分け
+    def point_assign(self, status_select, num):
+        status = [self.hp, self.mp, self.str, self.vtl, self.mana, self.antiAttack, self.antiMana, self.speed]
+        status_BU = [self.hp_BU, self.mp_BU, self.str_BU, self.vtl_BU, self.mana_BU, self.antiAttack_BU, self.antiMana_BU, self.speed_BU]
+        # 振り分け
+        status[status_select] += num
+        status_BU[status_select] += num
 
 class EnemyClass(Character):
     def __init__(self, charaName, job, hp, mp, strg, vtl, mana, antiAttack, antiMana, speed, alive, way_type, element):

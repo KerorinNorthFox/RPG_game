@@ -1,3 +1,4 @@
+import secrets
 from CharacterClass import *
 import os, sys, time, random, config
 import StreamTextModule as stm
@@ -104,7 +105,7 @@ class Battle(object):
                                         continue
                             # 各処理
                             if Party[pt_ct].way == 1: # 物理攻撃
-                                Party[pt_ct].physicalAttack(Enemy[Party[pt_ct].target], False)
+                                Party[pt_ct].physicalAttack(Enemy[Party[pt_ct].target], Enemy[pt_ct].defence)
                             elif Party[pt_ct].way == 3: # 魔法攻撃
                                 # 魔法レート設定
                                 magic_rate = self._setMagicRate(Party, Enemy, pt_ct)
@@ -131,9 +132,9 @@ class Battle(object):
                                 Enemy[em_ct].target = self._enemySelectTarget(Party)
                             # 各処理
                             if Enemy[em_ct].way == 1: # 物理攻撃
-                                Enemy[em_ct].physicalAttack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].target)
+                                Enemy[em_ct].physicalAttack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence)
                             elif Enemy[em_ct].way == 2: # 魔法攻撃
-                                Enemy[em_ct].magicalAttack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].target, 1.0)
+                                Enemy[em_ct].magicalAttack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence, 1.0)
                             else: # 防御＆行動不能
                                 em_ct += 1
                                 continue
@@ -145,6 +146,8 @@ class Battle(object):
                     time.sleep(TIME)
                 time.sleep(TIME)
                 self.NOWTURN += 1
+                for num in range(self.PARTYLENGTH):
+                    Party[num].defence = False
         except StopIteration: pass
 
 
@@ -256,19 +259,20 @@ class Battle(object):
         elif MAGIC_NAME[4] == Party[counter].magic[Party[counter].my_magic]: # 光
             if Enemy[Party[counter].target].element is False: rate = 1.3
             else: rate = 0.2
-            Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate * rate)
+            Party[counter].magicalAttack(Enemy[Party[counter].target], Enemy[counter].defence, magic_rate * rate)
         elif MAGIC_NAME[5] == Party[counter].magic[Party[counter].my_magic]:# 闇
             if Enemy[Party[counter].target].element is True: rate = 1.3
             else: rate = 0.2
-            Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate * rate)
+            Party[counter].magicalAttack(Enemy[Party[counter].target], Enemy[counter].defence, magic_rate * rate)
         else: # 通常
-            Party[counter].magicalAttack(Enemy[Party[counter].target], False, magic_rate)
+            Party[counter].magicalAttack(Enemy[Party[counter].target], Enemy[counter].defence, magic_rate)
 
     # 防御表示
     def _showDefense(self, Party):
         for ch_num in range(self.PARTYLENGTH):
             if Party[ch_num].way == 2:
                 stm.streamText(f"\n>>{Party[ch_num].charaName}は防御の姿勢をとった")
+                Party[ch_num].defence = True
 
     # 戦闘終了
     def _endBattle(self, Party, Enemy, World):
@@ -344,9 +348,9 @@ class Stage(object):
         for x in range(len(Party)): Party[x].showStatus()
         while(True):
             stm.streamText('--メニュー--')
-            print("1: スキルポイント振り分け\n2: 編成\np: もどる")
+            print("1: スキルポイント振り分け\np: もどる")
             key = input(": ")
-            if key == '1': self._skill()
+            if key == '1': self._skill_point_show(Party)
             elif key.lower() == "p":
                 os.system('cls')
                 break
@@ -354,10 +358,42 @@ class Stage(object):
                 stm.streamText("\n>>入力が間違っています。")
 
     # スキルポイント振り分け画面
-    def _skill(self):
+    def _skill_point_show(self, Party):
         os.system('cls')
-        stm.streamText('>>誰に振り分ける?')
+        stm.streamText(f'>>現在のスキルポイントは{self._all_skill_point}です')
+        stm.streamText('\n>>誰に振り分ける?')
+        for num in range(len(Party)):
+            print(f'{num+1}: {Party[num].charaName}')
+        select = input(': ')
+        self._point_assign(select, Party)
+        os.system('cls')
 
+    def _point_assign(self, select, Party):
+        os.system('cls')
+        stm.streamText('>>どのステータスに振り分ける?')
+        print('''1: HP
+2: MP
+3: STR
+4: VTL
+5: Mana
+6: AATK
+7: AMana
+8: Speed''')
+        status_select = input(": ")
+        os.sysem('cls')
+        stm.streamText('>>どれだけ振り分ける?')
+        num = input(": ")
+        # 振り分け
+        if status_select == '1': Party[select].hp += num
+        elif status_select == '2': Party[select].mp += num
+        elif status_select == '3': Party[select].str += num
+        elif status_select == '4': Party[select].vtl += num
+        elif status_select == '5': Party[select].mana += num
+        elif status_select == '6': Party[select].antiAttack += num
+        elif status_select == '7': Party[select].antiMana += num
+        elif status_select == '8': Party[select].speed += num
+        stm.streamText('>>振り分け完了')
+ 
     # ゲーム終了
     def _end_game(self):
         stm.streamText("\n>>ゲームを終了します")

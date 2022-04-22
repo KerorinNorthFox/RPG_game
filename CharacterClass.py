@@ -67,7 +67,10 @@ class Character(object):
 
     # hp減算
     def _hp_subtraction(self, defence, Atked, dmg, text):
-        if defence is True: Atked.hp -= math.floor(dmg/10) # 防御時ダメージ1/10
+        if defence is True:
+            dmg = math.floor(dmg/10) # 防御時ダメージ1/10
+            Atked.hp -= dmg
+            print('nya')
         else: Atked.hp -= dmg
         time.sleep(TIME)
         stm.streamText(f"\n{text}>>{self.charaName}は{Atked.charaName}に{dmg}のダメージを与えた")
@@ -109,6 +112,7 @@ class PartyClass(Character):
         self.alive: bool = alive
         self.element: bool = element
         self.magic: list[str] = magic
+        self.defence: bool = False
         self.way: int = 0
         self.target: int = 0
         self.my_magic: int = 0

@@ -1,4 +1,3 @@
-import secrets
 from CharacterClass import *
 import os, sys, time, random, config
 import StreamTextModule as stm

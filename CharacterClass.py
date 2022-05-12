@@ -59,7 +59,7 @@ class Character(object):
         else:
             stm.streamText(f"\n>>{Healed.charaName}の体力が{heal}回復した")
 
-    # ミス確率計算
+    # ミス確率計算 : スピード/xでランダム値を二つ取り、一致した場合ミス
     def _miss_calc(self, Atked, x):
         miss_prob: list[int] = []
         for _ in range(2): miss_prob.append(random.randint(0, math.floor(Atked.speed/x)))

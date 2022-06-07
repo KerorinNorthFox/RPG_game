@@ -1,7 +1,10 @@
-from ast import Num
-from Character import *
-import StreamTextModule as stm
-import os, sys, time, random, config
+import os
+import time
+import random
+
+import config
+from character import *
+import streamtextmodule as stm
 
 CHARA_INFO = config.chara_info
 MAGIC_NAME: list[str] = config.magic_name
@@ -11,8 +14,9 @@ class Battle(object):
         self.PARTYLENGTH: int = len(Party) # 味方の人数
         self.ENEMYLENGTH: int = len(Enemy) # 敵の人数
         self.NOWTURN: int = 1 # 現在のターン
+        print(max(self.PARTYLENGTH, self.ENEMYLENGTH))
 
-        stm.streamText(">>戦闘開始\n")
+        stm.stream_text(">>戦闘開始\n")
         # 敵とエンカウント表示
         self._encountEnemy(Enemy) 
         # メインループ開始
@@ -21,7 +25,7 @@ class Battle(object):
                 # 表示リセット
                 os.system('cls')
                 # 現在のターン表示
-                stm.streamText(f"\n>>現在のターン : {self.NOWTURN}\n")
+                stm.stream_text(f"\n>>現在のターン : {self.NOWTURN}\n")
                 time.sleep(TIME)
                 # 敵味方ステータス表示
                 self._showStatuses(Party, Enemy)
@@ -51,7 +55,7 @@ class Battle(object):
                         self._changeElement(chara)
                         chara.target = None
                     else: # 逃走
-                        stm.streamText("\n>>一行は逃げ出した")
+                        stm.stream_text("\n>>一行は逃げ出した")
                         World.now_stage = 0
                         time.sleep(TIME)
                         os.system('cls')
@@ -81,12 +85,16 @@ class Battle(object):
                 self._showDefense(Party)
                 time.sleep(TIME)
                 
+                
                 for _ in range(max(self.PARTYLENGTH, self.ENEMYLENGTH)):
                     # 味方攻撃ループ
                     try:
                         while(True):
+                            print(pt_ct)
+                            print('do')
                             # 死亡判定
                             if Party[pt_ct].way == None or Party[pt_ct].alive == False or Party[pt_ct].target == None:
+                                print('die')
                                 pt_ct += 1
                                 continue
                             # ターゲット死亡時敵ターゲット選択やり直し
@@ -103,7 +111,7 @@ class Battle(object):
                                         continue
                             # 各処理
                             if Party[pt_ct].way == 1: # 物理攻撃
-                                Party[pt_ct].physicalAttack(Enemy[Party[pt_ct].target], Enemy[Party[pt_ct].target].defence)
+                                Party[pt_ct].physicalAttack(Enemy[Party[pt_ct].target], False)
                             elif Party[pt_ct].way == 3: # 魔法攻撃
                                 # 魔法レート設定
                                 magic_rate = self._setMagicRate(Party[pt_ct], Enemy)
@@ -144,8 +152,7 @@ class Battle(object):
                     time.sleep(TIME)
                 time.sleep(TIME)
                 self.NOWTURN += 1
-                for chara in Party:
-                    chara.defence = False
+                for chara in Party: chara.defence = False
         except StopIteration: pass
         
     # 敵とエンカウント表示
@@ -162,26 +169,26 @@ class Battle(object):
     # 行動選択
     def _myTurn(self, chara):
         while(True):
-            stm.streamText(f"\n--{chara.name}はどうする?--")
-            time.sleep(TIME)
+            stm.stream_text(f"\n--{chara.name}はどうする?--")
+            time.sleep(TIME/2)
             print(f"1 : 攻撃\n2 : 防御\n3 : 魔法\n4 : 属性チェンジ\n5 : 逃げる")
             select = input("\n: ")
             try:
                 select = int(select)
                 if select >= 6 or select <= 0:
-                    stm.streamText("\n>>入力が間違っています。")
+                    stm.stream_text("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                stm.streamText("\n>>入力が間違っています。")
+                stm.stream_text("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select
 
     # 魔法選択
     def _selectMagic(self, chara):
         while(True):
-            stm.streamText("\n--どの魔法を使う?--")
+            stm.stream_text("\n--どの魔法を使う?--")
             time.sleep(TIME)
             for i, num in enumerate(chara.magic):
                 print(f">>{i+1} : {num}")
@@ -189,40 +196,40 @@ class Battle(object):
             try:
                 select = int(select)
                 if select > len(chara.magic) or select <= 0:
-                    stm.streamText("\n>>入力が間違っています。")
+                    stm.stream_text("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                stm.streamText("\n>>入力が間違っています。")
+                stm.stream_text("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select-1
 
     # 属性変更
     def _changeElement(self, chara):
-        stm.streamText(f"\n>>{chara.name}は属性を変更した!")
+        stm.stream_text(f"\n>>{chara.name}は属性を変更した!")
         chara.element = not chara.element
 
     # 味方ターゲット選択
     def _partySelectTarget(self, Enemy, text_1, text_2, length):
         while(True):
-            stm.streamText(f"\n>>誰に{text_1}する? : ")
+            stm.stream_text(f"\n>>誰に{text_1}する? : ")
             for i, chara in enumerate(Enemy):
                 print(f"{i+1} : {chara.name}")
             select = input("\n: ")
             try:
                 select = int(select)
                 if select > length or select <= 0:
-                    stm.streamText("\n>>入力が間違っています。")
+                    stm.stream_text("\n>>入力が間違っています。")
                     time.sleep(TIME)
                     continue
                 elif Enemy[select-1].hp <= 0:
-                    stm.streamText(f"\n>>{text_2}に攻撃はできません")
+                    stm.stream_text(f"\n>>{text_2}に攻撃はできません")
                     time.sleep(TIME)
                     continue
                 break
             except ValueError:
-                stm.streamText("\n>>入力が間違っています。")
+                stm.stream_text("\n>>入力が間違っています。")
                 time.sleep(TIME)
         return select - 1
 
@@ -268,29 +275,45 @@ class Battle(object):
     def _showDefense(self, Party):
         for chara in Party:
             if chara.way == 2:
-                stm.streamText(f"\n>>{chara.name}は防御の姿勢をとった")
-                Party[chara].defence = True
+                stm.stream_text(f"\n>>{chara.name}は防御の姿勢をとった")
+                chara.defence = True
 
     # 戦闘終了
     def _endBattle(self, Party, Enemy, World):
-        party_list: list[int] = [0 for chara in Party if chara.hp == 0]
-        enemy_list: list[int] = [0 for chara in Enemy if chara.hp == 0]
+        World.save = False
+        killed_party_len: int = len([0 for chara in Party if chara.hp == 0])
+        killed_enemy_len: int = len([0 for chara in Enemy if chara.hp == 0])
+
         # 終了判定
-        if len(party_list) == self.PARTYLENGTH or len(enemy_list) == self.ENEMYLENGTH:
+        if killed_party_len == self.PARTYLENGTH or killed_enemy_len == self.ENEMYLENGTH:
             time.sleep(TIME)
             os.system('cls')
-            stm.streamText("\n>>戦闘終了")
+            stm.stream_text("\n>>戦闘終了")
             time.sleep(TIME)
-            if len(party_list) == self.PARTYLENGTH: print(f"\n>>敗北")
-            elif len(enemy_list) == self.ENEMYLENGTH: print(f"\n>>勝利!")
+
+            if killed_party_len < killed_enemy_len:
+                print(f"\n>>勝利!")
+                exp_level = 'victory'
+            elif killed_party_len > killed_enemy_len:
+                print(f"\n>>敗北")
+                exp_level = 'defeat'
+            else:
+                print("\n>>引き分け")
+                exp_level = 'draw'
             time.sleep(TIME)
+
+            if exp_level == 'victory': exp = World.exp
+            elif exp_level == 'defeat': exp = World.exp / 5
+            elif exp_level == 'draw': exp = World.exp / 2
+
             # 経験値加算
-            stm.streamText(f'\nそれぞれが{World.exp}exp手に入れた')
+            stm.stream_text(f'\nそれぞれが{exp}exp手に入れた')
             time.sleep(TIME)
             for chara in Party:
-                chara.add_exp(World)
-                # スキルポイント加算
-            stm.streamText(f'\n{World.skill_point}のスキルポイントを手に入れた')
+                chara.addExp(exp)
+
+            # スキルポイント加算
+            stm.stream_text(f'\n{World.skill_point}のスキルポイントを手に入れた')
             World.all_skill_point += World.skill_point
             # #新キャラ
             # if World.new_chara != None:

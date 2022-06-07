@@ -8,4 +8,3 @@ chara_info = [
 
 magic_name = ["通常", "初級ヒール", "中級ヒール", "上級ヒール", "光"]
 
-obj_list = ['hero_obj', 'fencer_obj', 'wizard_obj', 'sage_obj', 'demon_obj']

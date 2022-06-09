@@ -2,17 +2,19 @@ from colorama import Back
 import random
 import math
 import time
+import os
 
 import streamtextmodule as stm
 
 
 PARTITION: str = '-------------------------'
 TIME: float = 1.5
+CLEAR = 'cls' if os.name == 'nt' else 'clear' # 実行os判別
 
 
 class Character(object): # DONE
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合、攻撃力×1~10%のダメージ
-    def physicalAttack(self, Atked:object, defence:bool) -> None:
+    def physical_attack(self, Atked:object, defence:bool) -> None:
         stm.stream_text(f"\n>>{self.name}の攻撃")
         # ミス確率
         miss_prob: list[int] = self._miss_calc(Atked, 10)
@@ -34,7 +36,7 @@ class Character(object): # DONE
         self._no_hp(Atked)
 
     # 魔法攻撃処理 : ダメージが通りやすい(防御貫通)が外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
-    def magicalAttack(self, Atked:object, defence:bool, rate:float) -> None:
+    def magical_attack(self, Atked:object, defence:bool, rate:float) -> None:
         stm.stream_text(f"\n>>{self.name}の攻撃")
         # 魔法ダメージ計算
         dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.amana))
@@ -79,7 +81,7 @@ class Character(object): # DONE
         else:
             Atked.hp -= dmg
         time.sleep(TIME)
-        stm.stream_text(f"\n{text}>>{self.name}は{Atked.name}に{dmg}のダメージを与えた")
+        stm.stream_text(f"{text}>>{self.name}は{Atked.name}に{dmg}のダメージを与えた")
     
     # 死亡処理
     def _no_hp(self, Atked:object) -> None:
@@ -93,7 +95,7 @@ class Character(object): # DONE
 class PartyClass(Character): # DONE
     def __init__(self, name, job, hp, mp, 
                  strg, vtl, mana, aatk, 
-                 amana, speed, alive, element) -> None:
+                 amana, speed, alive, element, magic) -> None:
         self.name: str = name
         self.job: str = job
         self.level: int = 1
@@ -109,6 +111,7 @@ class PartyClass(Character): # DONE
         self.speed: int = speed
         self.alive: bool = alive
         self.element: bool = element
+        self.magic: list[str] = magic
         self.way: int = 0
         self.target: int = 0
         self.selected_magic: int = None
@@ -125,7 +128,7 @@ class PartyClass(Character): # DONE
 
     # ステータス表示
     def show_status(self) -> None:
-        print(f'''--------------------
+        print(f'''----------------------------------------
 >>Name: {self.name}
 >>Job: {self.job}
 >>Level: {self.level} | 次のレベルまであと{self.basic_exp*self.level-self.my_exp}exp''')
@@ -246,7 +249,7 @@ class EnemyClass(Character): # DONE
 
     # ステータス表示
     def show_status(self) -> None:
-        print(f'''--------------------
+        print(f'''----------------------------------------
 >>Name: {self.name}
 >>Job: {self.job}''')
         if self.element:

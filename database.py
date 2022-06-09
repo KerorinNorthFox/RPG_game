@@ -4,6 +4,8 @@ import sqlite3
 import pickle
 import bz2
 
+from character import CLEAR
+
 
 TIME: int = 2
 
@@ -28,9 +30,9 @@ class Database(object):
         # ログイン処理
         self.login_status: bool = self._login(conn)
         if self.login_status:
-            print(">>ログインしました")
+            print("\n>>ログインしました")
         else:
-            print(">>ゲストで始めます")
+            print("\n>>ゲストで始めます")
             self.first = True
         time.sleep(TIME)
 
@@ -40,10 +42,10 @@ class Database(object):
     # ログイン処理
     def _login(self, conn:object) -> bool:
         while(True):
-            os.system('cls')
+            os.system(CLEAR)
 
-            print('===ログインする===(ゲストで始める : g)')
-            username: str = input(">>ユーザー名(アカウント作成 : pキー) : ")
+            print('===ログインする===(ゲストで始める: g)')
+            username: str = input(">>ユーザー名(アカウント作成: pキー): ")
 
             # アカウント作成
             if username.lower() == 'p':
@@ -57,9 +59,9 @@ class Database(object):
                 continue
 
             import getpass
-            password: str = getpass.getpass(prompt='>>パスワード : ')
+            password: str = getpass.getpass(prompt='>>パスワード: ')
             if password != real_pass:
-                print(">>パスワードが違います")
+                print("\n>>パスワードが違います")
                 time.sleep(TIME)
                 continue
             else:
@@ -73,10 +75,10 @@ class Database(object):
         cursor: object = conn.cursor()
 
         while(True):
-            os.system('cls')
+            os.system(CLEAR)
             
             print("===アカウント作成===")
-            username: str = input(">>ユーザー名(やめるにはcキー) : ")
+            username: str = input(">>ユーザー名(やめるにはcキー): ")
             if username.lower() == 'c':
                 return
             # ユーザー名確認
@@ -84,14 +86,14 @@ class Database(object):
             if cursor.fetchone() is None:
                 break
             else:
-                print(">>既にそのユーザー名は使われています")
+                print("\n>>既にそのユーザー名は使われています")
                 time.sleep(TIME)
                 continue
-        password: str = input(">>パスワード : ")
+        password: str = input(">>パスワード: ")
 
         # ユーザー作成
         cursor.execute("INSERT INTO Users(username, password) VALUES(?, ?)", ((username, password)))
-        print(">>アカウント作成完了")
+        print("\n>>アカウント作成完了")
         self.first = True
         time.sleep(TIME)
 

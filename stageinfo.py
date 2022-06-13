@@ -1,6 +1,9 @@
 from character import *
 
 
+stage_num: int = 2
+
+
 # ステージ1-1
 def one_one() -> list[object | int]:
     Enemy: list[object] = []

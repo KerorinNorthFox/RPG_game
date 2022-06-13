@@ -30,7 +30,6 @@ class Battle(object):
                 os.system(CLEAR)
                 # 現在のターン表示
                 stm.stream_text(f"\n>>現在のターン: {now_turn}\n")
-                print(Enemy[0].hp)
                 time.sleep(TIME)
                 # 敵味方ステータス表示
                 self._show_statuses(Party, Enemy)
@@ -93,70 +92,66 @@ class Battle(object):
                 
                 for _ in range(max(self.PARTYLENGTH, self.ENEMYLENGTH)):
                     # 味方攻撃ループ
-                    # try:
-                    while(True):
-                        print(pt_ct)
-                        print('do')
-
-                        # 死亡判定
-                        if Party[pt_ct].way == None or Party[pt_ct].alive == False or Party[pt_ct].target == None:
-                            print('die')
-                            pt_ct += 1
-                            continue
-                        
-                        # ターゲット死亡時敵ターゲット選択やり直し
-                        if Party[pt_ct].way == 3 and "ヒール" in Party[pt_ct].magic[Party[pt_ct].selected_magic]:
-                            if not Party[Party[pt_ct].target].alive:
-                                # ヒールの場合
-                                Party[pt_ct].target = random.randint(0, self.PARTYLENGTH)
+                    try:
+                        while(True):
+                            # 死亡判定
+                            if Party[pt_ct].way == None or Party[pt_ct].alive == False or Party[pt_ct].target == None:
+                                pt_ct += 1
+                                continue
+                            
+                            # ターゲット死亡時敵ターゲット選択やり直し
+                            if Party[pt_ct].way == 3 and "ヒール" in Party[pt_ct].magic[Party[pt_ct].selected_magic]:
                                 if not Party[Party[pt_ct].target].alive:
-                                    continue
-                        else:
-                            if not Enemy[Party[pt_ct].target].alive:
-                                Party[pt_ct].target = random.randint(0, self.ENEMYLENGTH)
+                                    # ヒールの場合
+                                    Party[pt_ct].target = random.randint(0, self.PARTYLENGTH)
+                                    if not Party[Party[pt_ct].target].alive:
+                                        continue
+                            else:
                                 if not Enemy[Party[pt_ct].target].alive:
-                                    continue
-                        
-                        # 各処理
-                        if Party[pt_ct].way == 1: # 物理攻撃
-                            Party[pt_ct].physical_attack(Enemy[Party[pt_ct].target], False)
-                        elif Party[pt_ct].way == 3: # 魔法攻撃
-                            # 魔法レート設定
-                            magic_rate = self._set_magic_rate(Party[pt_ct], Enemy.element)
-                            # 魔法種類別処理
-                            self._magic_process(Party, Enemy, pt_ct, magic_rate)
-                        else: # 防御＆属性変化
+                                    Party[pt_ct].target = random.randint(0, self.ENEMYLENGTH)
+                                    if not Enemy[Party[pt_ct].target].alive:
+                                        continue
+                            
+                            # 各処理
+                            if Party[pt_ct].way == 1: # 物理攻撃
+                                Party[pt_ct].physical_attack(Enemy[Party[pt_ct].target], False)
+                            elif Party[pt_ct].way == 3: # 魔法攻撃
+                                # 魔法レート設定
+                                magic_rate = self._set_magic_rate(Party[pt_ct], Enemy)
+                                # 魔法種類別処理
+                                self._magic_process(Party, Enemy, pt_ct, magic_rate)
+                            else: # 防御＆属性変化
+                                pt_ct += 1
+                                continue
                             pt_ct += 1
-                            continue
-                        pt_ct += 1
-                        break
-                    # except:
-                    #     pass
+                            break
+                    except:
+                        pass
                     # 戦闘終了判定
                     self._end_battle(Party, Enemy, World)
                     time.sleep(TIME)
                     # 敵攻撃ループ
-                    # try:
-                    while(True):
-                        # 死亡判定
-                        if Enemy[em_ct].way == None or Enemy[em_ct].alive == False:
+                    try:
+                        while(True):
+                            # 死亡判定
+                            if Enemy[em_ct].way == None or Enemy[em_ct].alive == False:
+                                em_ct += 1
+                                continue
+                            # ターゲット死亡時敵ターゲット選択やり直し
+                            if not Party[Enemy[em_ct].target].alive:
+                                Enemy[em_ct].target = self._enemy_select_target(Party)
+                            # 各処理
+                            if Enemy[em_ct].way == 1: # 物理攻撃
+                                Enemy[em_ct].physical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence)
+                            elif Enemy[em_ct].way == 2: # 魔法攻撃
+                                Enemy[em_ct].magical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence, 1.0)
+                            else: # 防御＆行動不能
+                                em_ct += 1
+                                continue
                             em_ct += 1
-                            continue
-                        # ターゲット死亡時敵ターゲット選択やり直し
-                        if not Party[Enemy[em_ct].target].alive:
-                            Enemy[em_ct].target = self._enemy_select_target(Party)
-                        # 各処理
-                        if Enemy[em_ct].way == 1: # 物理攻撃
-                            Enemy[em_ct].physical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence)
-                        elif Enemy[em_ct].way == 2: # 魔法攻撃
-                            Enemy[em_ct].magical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence, 1.0)
-                        else: # 防御＆行動不能
-                            em_ct += 1
-                            continue
-                        em_ct += 1
-                        break
-                    # except:
-                    #     pass
+                            break
+                    except:
+                        pass
                     # 戦闘終了判定
                     self._end_battle(Party, Enemy, World)
                     time.sleep(TIME)
@@ -165,11 +160,7 @@ class Battle(object):
                 for chara in Party:
                     chara.defence = False
         except StopIteration:
-            print("stop iteration")
-            time.sleep(TIME*2)
-        except IndexError:
-            print("IndexError")
-            time.sleep(TIME*2)
+            pass
 
         
     # 敵とエンカウント表示
@@ -264,12 +255,12 @@ class Battle(object):
         return select
 
     # 魔法レート設定
-    def _set_magic_rate(self, chara:object, enemy_element:bool) -> float:
+    def _set_magic_rate(self, chara:object, Enemy:object) -> float:
         # ヒールの場合例外
         if "ヒール" in chara.magic[chara.selected_magic]:
             magic_rate: float = 1.4
         else:
-            if chara.element == enemy_element:
+            if chara.element == Enemy[chara.target].element:
                 magic_rate: float = 1.0
             else:
                 magic_rate: float = 1.4
@@ -288,15 +279,15 @@ class Battle(object):
                 rate: float = 1.3
             else:
                 rate: float = 0.2
-            Party[i].magical_attack(Enemy[Party[i].target], Enemy[i].defence, magic_rate * rate)
-        elif MAGIC_NAME[5] == Party[i].magic[Party[i].selected_magic]:# 闇
-            if Enemy[Party[i].target].element:
-                rate: float = 1.3
-            else:
-                rate: float = 0.2
-            Party[i].magical_attack(Enemy[Party[i].target], Enemy[i].defence, magic_rate * rate)
+            Party[i].magical_attack(Enemy[Party[i].target], False, magic_rate * rate)
+        # elif MAGIC_NAME[5] == Party[i].magic[Party[i].selected_magic]:# 闇
+        #     if Enemy[Party[i].target].element:
+        #         rate: float = 1.3
+        #     else:
+        #         rate: float = 0.2
+        #     Party[i].magical_attack(Enemy[Party[i].target], False, magic_rate * rate)
         else: # 通常
-            Party[i].magical_attack(Enemy[Party[i].target], Enemy[i].defence, magic_rate)
+            Party[i].magical_attack(Enemy[Party[i].target], False, magic_rate)
 
     # 防御表示
     def _show_defense(self, Party:list[object]) -> None:
@@ -359,7 +350,7 @@ class Battle(object):
 class Stage(object): # DONE
     def __init__(self) -> None:
         self.stage_num: list[bool] = [True, False]
-        self._all_skill_point: int = 0
+        self.all_skill_point: int = 0
         self.save: bool = False
 
     # ステージ表示
@@ -444,6 +435,7 @@ class Stage(object): # DONE
             key: str = input(": ")
             if key == '1':
                 self._skill_point_show(Party)
+                break
             elif key.lower() == "p":
                 os.system(CLEAR)
                 break
@@ -454,13 +446,17 @@ class Stage(object): # DONE
     def _skill_point_show(self, Party:list[object]) -> None:
         while(True):
             os.system(CLEAR)
-            stm.stream_text(f'>>現在のスキルポイントは{self._all_skill_point}です\n>>誰に振り分ける?')
+            stm.stream_text(f'>>現在のスキルポイントは{self.all_skill_point}です\n\n>>誰に振り分ける?(p: 戻る)')
             for i, num in enumerate(Party):
                 print(f'{i+1}: {num.name}')
             key: str = input(': ')
-            if int(key) < len(Party) or int(key) > 0:
-                break
-            stm.stream_text('>>入力が間違っています')
+            try:
+                if int(key) < len(Party) or int(key) > 0:
+                    break
+            except:
+                if key.lower() == 'p':
+                    return
+                stm.stream_text('>>入力が間違っています')
         self._point_assign(int(key), Party)
         os.system(CLEAR)
 
@@ -478,25 +474,30 @@ class Stage(object): # DONE
 7: AMana
 8: Speed''')
             status_select: str = input(": ")
+            try:
+                status_select = int(status_select)
+            except:
+                stm.stream_text('>>入力が間違っています')
             if int(status_select) < 9 or int(status_select) > 0:
-                break
-            stm.stream_text('>>入力が間違っています')
+                    break
+            else:
+                stm.stream_text('>>入力が間違っています')
         # 振り分け量入力
         while(True):
             os.system(CLEAR)
-            stm.stream_text(f'>>どれだけ振り分ける?(現在のスキルポイント: {self._all_skill_point})')
+            stm.stream_text(f'>>どれだけ振り分ける?(現在のスキルポイント: {self.all_skill_point})')
             num: str = input(": ")
-            if int(num) <= self._all_skill_point:
-                break
-            stm.stream_text('>>入力値が多きすぎます')
-        Party[key].point_assign(int(status_select), int(num))
+            try:
+                if int(num) <= self.all_skill_point and int(num) >= 0:
+                    break
+                else:
+                    stm.stream_text('>>入力値が多きすぎます')
+            except:
+                    stm.stream_text('>>入力が間違っています')
+        Party[key].point_assign(status_select, int(num))
+        self.all_skill_point -= int(num)
+        self.save = not self.save
         stm.stream_text('>>振り分け完了')
-
-    # セーブ
-    def _save_progress(self, Me:object, Party:list[object]) -> None:
-        Me.save_obj(Party, self)
-        stm.stream_text("\n>>セーブ完了")
-        time.sleep(TIME)
 
     # ゲーム終了
     def _end_game(self, Me:object, Party:list[object]) -> None:
@@ -511,36 +512,12 @@ class Stage(object): # DONE
         import sys
         sys.exit()
 
-    # # ステージ1-1
-    # def _oneOne(self) -> list[object]:
-    #     Enemy: list[object] = []
-    #     Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, False, 0))
-    #     self.now_stage: int = 1
-    #     self.exp: int = 100
-    #     self.skill_point: int = 10
-    #     return Enemy
-
-    # # ステージ1-2
-    # def _oneTwo(self) -> list[object]:
-    #     Enemy: list[object] = []
-    #     Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, False, 0))
-    #     Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, False, 0))
-    #     self.now_stage: int = 2
-    #     self.exp: int = 300
-    #     self.skill_point: int = 20
-    #     return Enemy
-
-    # # ステージ1-3
-    # def _oneThree(self) -> list[object]:
-    #     Enemy: list[object] = []
-    #     Enemy.append(EnemyClass("敵A", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, False, 0))
-    #     Enemy.append(EnemyClass("敵B", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, True, 0))
-    #     Enemy.append(EnemyClass("敵C", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, False, 0))
-    #     Enemy.append(EnemyClass("敵D", "Zombie", 200, 0, 100, 30, 0, 0, 0, 50, True, True, 0))
-    #     self.now_stage: int = 3
-    #     self.exp: int = 500
-    #     self.skill_point: int = 40
-    #     return Enemy
+    # セーブ
+    def _save_progress(self, Me:object, Party:list[object]) -> None:
+        Me.save_obj(Party, self)
+        self.save = not self.save
+        stm.stream_text("\n>>セーブ完了")
+        time.sleep(TIME)
 
 
 # ゲーム説明本文
@@ -555,7 +532,7 @@ def game_explain() -> None:
 自分と同じ属性の相手に魔法を使うとあまり効果がありませんが、
 違う属性の相手に魔法を使うとダメージが加算されます。
 例) 自分(攻撃): 光　相手: 光　→　ダメージ↓
-    自分(攻撃): 光　相手: 闇　→　ダメージ↑
+    自分(攻撃): 闇　相手: 光　→　ダメージ↑
 属性チェンジをすると自分の属性を変えられるので属性を変えて大ダメージを狙うこともできます。
 また敵はこの属性攻撃をしてきません。
 ''')    
@@ -607,6 +584,9 @@ if __name__ == "__main__":
         Battle(Party, Enemy, World)
         del Enemy
         # 次ステージ開放
-        World.stage_num[World.now_stage] = True
-        World.stage_num.append(False)
+        import stageinfo
+        if World.now_stage < stageinfo.stage_num:
+            World.stage_num[World.now_stage] = True
+            World.stage_num.append(False)
+        World.save = not World.save
         

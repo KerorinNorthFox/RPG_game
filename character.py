@@ -54,6 +54,20 @@ class Character(object): # DONE
         # 死亡処理
         self._no_hp(Atked)
 
+    # ヒール
+    def heal(self, Healed:object, rate:float):
+        stm.stream_text(f"\n>>{self.name}のヒール")
+        if Healed.hp == Healed.hp_backup:
+            stm.stream_text('>>これ以上回復できない')
+            return
+        heal: int = math.floor((self.mana/3) * rate)
+        Healed.hp += heal
+        if Healed.hp >= Healed.hp_backup: 
+            Healed.hp = Healed.hp_backup
+            stm.stream_text(f"\n>>{Healed.name}の体力が最大まで回復した")
+        else:
+            stm.stream_text(f"\n>>{Healed.name}の体力が{heal}回復した")
+
     # ミス確率計算 : 0~スピード/xの間でランダム値を二つ取り、一致した場合ミス
     def _miss_calc(self, Atked:object, x:int) -> list[int]:
         miss_prob: list[int] = []
@@ -67,7 +81,7 @@ class Character(object): # DONE
         # クリティカル処理
         if critical == 1:
             text: str = '\n>>急所にあたった!\n'
-            dmg = dmg * 1.6
+            dmg = math.float(dmg * 1.6)
         else:
             text: str = ''
         return dmg, text
@@ -208,11 +222,12 @@ class PartyClass(Character): # DONE
     # ポイント振り分け
     def point_assign(self, status_select:int, num:int) -> None:
         status: list[int] = [self.hp, self.mp, self.str, 
-                             self.vtl, self.mana, self.antiAttack, 
-                             self.antiMana, self.speed]
+                             self.vtl, self.mana, self.aatk, 
+                             self.amana, self.speed]
         status_backup: list[int] = [self.hp_backup, self.mp_backup, self.str_backup, 
                                     self.vtl_backup, self.mana_backup, self.aatk_backup, 
                                     self.amana_backup, self.speed_backup]
+        print("nya")
         # 振り分け
         status[status_select-1] += num
         status_backup[status_select-1] += num

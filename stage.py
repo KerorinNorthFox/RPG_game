@@ -457,7 +457,7 @@ class Stage(object): # DONE
                 if key.lower() == 'p':
                     return
                 stm.stream_text('>>入力が間違っています')
-        self._point_assign(int(key), Party)
+        self._point_assign(int(key)-1, Party)
         os.system(CLEAR)
 
     def _point_assign(self, key:int, Party:list[object]) -> None:
@@ -494,7 +494,7 @@ class Stage(object): # DONE
                     stm.stream_text('>>入力値が多きすぎます')
             except:
                     stm.stream_text('>>入力が間違っています')
-        Party[key].point_assign(status_select, int(num))
+        Party[key].skill_point_assign(status_select, int(num))
         self.all_skill_point -= int(num)
         self.save = not self.save
         stm.stream_text('>>振り分け完了')

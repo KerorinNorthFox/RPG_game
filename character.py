@@ -220,17 +220,31 @@ class PartyClass(Character): # DONE
 ''', sleep_time=0.01)
 
     # ポイント振り分け
-    def point_assign(self, status_select:int, num:int) -> None:
-        status: list[int] = [self.hp, self.mp, self.str, 
-                             self.vtl, self.mana, self.aatk, 
-                             self.amana, self.speed]
-        status_backup: list[int] = [self.hp_backup, self.mp_backup, self.str_backup, 
-                                    self.vtl_backup, self.mana_backup, self.aatk_backup, 
-                                    self.amana_backup, self.speed_backup]
-        print("nya")
-        # 振り分け
-        status[status_select-1] += num
-        status_backup[status_select-1] += num
+    def skill_point_assign(self, status_select:int, num:int) -> None:
+        if status_select == 1:
+            self.hp += num
+            self.hp_backup += num
+        elif status_select == 2:
+            self.mp += num
+            self.mp_backup += num
+        elif status_select == 3:
+            self.str += num
+            self.str_backup += num
+        elif status_select == 4:
+            self.vtl += num
+            self.vtl_backup += num
+        elif status_select == 5:
+            self.mana += num
+            self.mana_backup += num
+        elif status_select == 6:
+            self.aatk += num
+            self.aatk_backup += num
+        elif status_select == 7:
+            self.amana += num
+            self.amana_backup += num
+        elif status_select == 8:
+            self.speed += num
+            self.speed_backup += num
 
 
 class EnemyClass(Character): # DONE

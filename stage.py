@@ -457,7 +457,7 @@ class Stage(object): # DONE
                 if key.lower() == 'p':
                     return
                 stm.stream_text('>>入力が間違っています')
-        self._point_assign(int(key-1), Party)
+        self._point_assign(int(key)-1, Party)
         os.system(CLEAR)
 
     def _point_assign(self, key:int, Party:list[object]) -> None:

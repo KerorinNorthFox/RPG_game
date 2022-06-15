@@ -220,7 +220,7 @@ class PartyClass(Character): # DONE
 ''', sleep_time=0.01)
 
     # ポイント振り分け
-    def skill_point_assign(self, status_select:int, num:int) -> None:
+    def skillpoint_assign(self, status_select:int, num:int) -> None:
         if status_select == 1:
             self.hp += num
             self.hp_backup += num

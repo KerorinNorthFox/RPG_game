@@ -494,7 +494,7 @@ class Stage(object): # DONE
                     stm.stream_text('>>入力値が多きすぎます')
             except:
                     stm.stream_text('>>入力が間違っています')
-        Party[key].skill_point_assign(status_select, int(num))
+        Party[key].skillpoint_assign(status_select, int(num))
         self.all_skill_point -= int(num)
         self.save = not self.save
         stm.stream_text('>>振り分け完了')

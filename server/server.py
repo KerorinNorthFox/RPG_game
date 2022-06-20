@@ -3,6 +3,13 @@ import sqlite3
 import json
 
 
+conn: object = sqlite3.connect('users.db')
+cursor: object = conn.cursor()
+# テーブルが存在しない場合テーブル作成
+cursor.execute("CREATE TABLE IF NOT EXISTS Users(id INTEGER PRIMARY KEY AUTOINCREMENT, username, password, hero_obj, fencer_obj, wizard_obj, sage_obj, demon_obj, world_obj)")
+cursor.close()
+
+
 app = Flask(__name__)
 
 

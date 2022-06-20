@@ -1,3 +1,4 @@
+from crypt import methods
 from flask import Flask, request, Response
 import sqlite3
 import json
@@ -10,9 +11,68 @@ cursor.execute("CREATE TABLE IF NOT EXISTS Users(id INTEGER PRIMARY KEY AUTOINCR
 cursor.close()
 
 
-app = Flask(__name__)
+app: object = Flask(__name__)
 
 
+# ネット接続確認
+@app.route("/internet_connect", methods=['POST'])
+def internet_connect():
+    return Response(response='connected', status=200)
+
+# ユーザーネーム確認
+@app.route("/check_account_username", methods=['POST'])
+def check_account_username():
+    username: str = request.data.decode('utf-8')
+
+    conn: object = sqlite3.connect('users.db')
+    cursor: object = conn.cursor()
+    
+    cursor.execute("SELECT username FROM Users where username = ?", ((username,)))
+    if cursor.fetchone() is None:
+        return Response(response='True', status=200)
+    else:
+        return Response(response='False', status=200)
+
+# アカウント作成
+@app.route("/make_account", methods=['POST'])
+def make_account():
+    json_str = request.data.decode('utf-8')
+    dir_data = json.loads(json_str)
+
+    conn: object = sqlite3.connect('users.db')
+    cursor: object = conn.cursor()
+
+    cursor.execute("INSERT INTO Users(username, password) VALUES(?, ?)", ((dir_data['username'], dir_data['password'])))
+
+    cursor.close()
+    
+
+# パスワード確認
+@app.route("/take_pass", methods=['POST'])
+def take_pass():
+    username: str = request.data.decode('utf-8')
+
+    conn: object = sqlite3.connect('users.db')
+    cursor: object = conn.cursor()
+
+    # ユーザー確認
+    cursor.execute("SELECT password FROM Users where username = ?", ((username,)))
+    password: tuple[str] = cursor.fetchone()
+    if password is None:
+        data_dir: dir[str | bool] = {'password' : password[0], 'bool' : False}
+        data_json: str = json.dumps(data_dir)
+        cursor.close()
+        return Response(response=data_json, status=200)
+
+    cursor.execute("SELECT hero_obj FROM Users where username = ?", ((username,)))
+    a: tuple[str] = cursor.fetchone()
+    if a[0] is None:
+        data_dir: dir[str | bool] = {'password' : password[0], 'bool' : True}
+        data_json: str = json.dumps(data_dir)
+    cursor.close()
+    return Response(response=data_json, status=200)
+
+# データ保存
 @app.route("/save_obj", methods=['POST'])
 def save_obj():
     json_str: str = request.data.decode('utf-8') # jsonデータ
@@ -42,6 +102,7 @@ def save_obj():
     
     return Response(response="DONE", status=200)
 
+# データ引き出し
 @app.route("/set_obj", methods=['POST'])
 def set_obj() -> str:
     username: str = request.data.decode('utf-8')

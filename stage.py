@@ -514,7 +514,7 @@ class Stage(object): # DONE
 
     # セーブ
     def _save_progress(self, Me:object, Party:list[object]) -> None:
-        Me.save_obj(Party, self)
+        Me.save_data(Party, self)
         self.save = not self.save
         stm.stream_text("\n>>セーブ完了")
         time.sleep(TIME)
@@ -574,7 +574,7 @@ if __name__ == "__main__":
 
     # セーブデータ読み込み
     else:
-        Party, World = Me.set_obj()
+        Party, World = Me.set_data()
 
     #本編開始
     while(True):

@@ -9,7 +9,7 @@ import json
 from character import CLEAR
 
 
-URL = 'http://localhost:8080/'
+URL: str = 'http://localhost:8080'
 TIME: int = 2
 
 
@@ -67,7 +67,7 @@ class Database(object):
 
     # インターネット接続確認
     def _internet_connection_test(self) -> bool:
-        res = requests.post(URL+"internet_connect")
+        res: object = requests.post(URL+"/internet_connect")
         if not res.status_code == 200:
             return False
         print(res.text)
@@ -83,7 +83,7 @@ class Database(object):
             if username.lower() == 'c':
                 return
             # ユーザー名確認
-            res = requests.post(URL+"check_account_username", data=username)
+            res: object = requests.post(URL+"/check_account_username", data=username)
             print(res.text)
             if res.text == 'True':
                 break
@@ -95,23 +95,52 @@ class Database(object):
         password: str = input(">>パスワード: ")
 
         # ユーザー作成
-        dir_data = {'username' : username, 'password' : password}
-        _ = requests.post(URL+"make_account", data=json.dumps(dir_data))
+        dir_data: dir[str] = {'username' : username, 'password' : password}
+        _ = requests.post(URL+"/make_account", data=json.dumps(dir_data))
         
         print("\n>>アカウント作成完了")
         self.first = True
         time.sleep(TIME)
         
-
     # ユーザー名確認 ＆ パスワードを引き出し
     def _take_pass(self, username:str) -> str:
-        res = requests.post(URL+"take_pass", data=username)
-        res_dir = res.json()
+        res: object = requests.post(URL+"/take_pass", data=username)
+        res_dir: dir[str | bool] = res.json()
         if res_dir['bool']:
             self.first = True
         else:
             return False
         return res_dir['password']
+
+    # データ引き出し
+    def set_data(self) -> object:
+        json_str: str = requests.post(URL+"/set_data", data=self.username)
+        user_data: dir[list[bytes] | bytes] = json_str.json()
+
+        Party: list[object] = []
+        for obj_bytes in user_data['party_obj_list']:
+            obj: object = self._byte_to_obj(obj_bytes)
+            Party.append(obj)
+
+        World: object = self._byte_to_obj(user_data['world_obj'])
+
+        return Party, World
+
+    # データ保存
+    def save_data(self, party_obj_list:list[object], world_obj:object):
+        party_bytes_list: list[bytes] = []
+        for obj in party_obj_list:
+            obj_bytes: bytes = self._obj_to_byte(obj)
+            party_bytes_list.append(obj_bytes)
+        
+        world_bytes: bytes = self._obj_to_byte(world_obj)
+
+        user_data = {'username' : self.username, 'party_obj_list' : party_bytes_list, 'world_obj' : world_bytes}
+        json_str = json.dumps(user_data)
+
+        _ = requests.post(URL+'/save_data', data=json_str)
+
+        world_obj.save = True
 
     # オブジェクト→バイト列
     def _obj_to_byte(self, obj:object) -> bytes:

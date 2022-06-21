@@ -26,15 +26,14 @@ class Database(object):
 
     # ログイン処理
     def _login(self) -> bool:
-        while(True):
-            # ネット接続＆サーバー接続確認
-            try:
-                connect: bool = self._internet_connection_test()
-                if not connect:
-                    return False
-            except:
+        # ネット接続＆サーバー接続確認
+        try:
+            connect: bool = self._internet_connection_test()
+            if not connect:
                 return False
-
+        except:
+            return False
+        while(True):
             os.system(CLEAR)
 
             print('===ログインする===(ゲストで始める: g)')
@@ -47,7 +46,10 @@ class Database(object):
             elif username.lower() == 'g':
                 return False
             real_pass: str = self._take_pass(username)
+            print(real_pass)
             if not real_pass:
+                print("\n>>アカウントが存在しません")
+                time.sleep(TIME)
                 # ユーザー名が存在しない場合continue
                 continue
 
@@ -81,8 +83,9 @@ class Database(object):
             if username.lower() == 'c':
                 return
             # ユーザー名確認
-            res = requests.post(URL+"check_account_username")
-            if res == 'True':
+            res = requests.post(URL+"check_account_username", data=username)
+            print(res.text)
+            if res.text == 'True':
                 break
             else:
                 print("\n>>既にそのユーザー名は使われています")
@@ -93,7 +96,7 @@ class Database(object):
 
         # ユーザー作成
         dir_data = {'username' : username, 'password' : password}
-        requests.post(URL+"make_account", data=json.dumps(dir_data))
+        _ = requests.post(URL+"make_account", data=json.dumps(dir_data))
         
         print("\n>>アカウント作成完了")
         self.first = True

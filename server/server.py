@@ -1,4 +1,3 @@
-from crypt import methods
 from flask import Flask, request, Response
 import sqlite3
 import json
@@ -9,6 +8,8 @@ cursor: object = conn.cursor()
 # テーブルが存在しない場合テーブル作成
 cursor.execute("CREATE TABLE IF NOT EXISTS Users(id INTEGER PRIMARY KEY AUTOINCREMENT, username, password, hero_obj, fencer_obj, wizard_obj, sage_obj, demon_obj, world_obj)")
 cursor.close()
+conn.commit()
+conn.close()
 
 
 app: object = Flask(__name__)
@@ -28,9 +29,13 @@ def check_account_username():
     cursor: object = conn.cursor()
     
     cursor.execute("SELECT username FROM Users where username = ?", ((username,)))
-    if cursor.fetchone() is None:
+    a = cursor.fetchone()
+    print(a)
+    cursor.close()
+    conn.close()
+    if a is None:
         return Response(response='True', status=200)
-    else:
+    elif a[0]:
         return Response(response='False', status=200)
 
 # アカウント作成
@@ -39,12 +44,23 @@ def make_account():
     json_str = request.data.decode('utf-8')
     dir_data = json.loads(json_str)
 
+    print(dir_data['username'])
+    print(dir_data['password'])
+
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
 
     cursor.execute("INSERT INTO Users(username, password) VALUES(?, ?)", ((dir_data['username'], dir_data['password'])))
 
+    cursor.execute("SELECT password FROM Users where username = ?", ((dir_data['username'],)))
+    a = cursor.fetchone()
+    print(f'\n{a}')
+
     cursor.close()
+    conn.commit()
+    conn.close()
+
+    return Response(response='DONE', status=200)
     
 
 # パスワード確認
@@ -55,13 +71,16 @@ def take_pass():
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
 
+    print(username)
     # ユーザー確認
     cursor.execute("SELECT password FROM Users where username = ?", ((username,)))
     password: tuple[str] = cursor.fetchone()
+    print(password)
     if password is None:
-        data_dir: dir[str | bool] = {'password' : password[0], 'bool' : False}
+        data_dir: dir[str | bool] = {'password' : None, 'bool' : False}
         data_json: str = json.dumps(data_dir)
         cursor.close()
+        conn.close()
         return Response(response=data_json, status=200)
 
     cursor.execute("SELECT hero_obj FROM Users where username = ?", ((username,)))
@@ -70,6 +89,7 @@ def take_pass():
         data_dir: dir[str | bool] = {'password' : password[0], 'bool' : True}
         data_json: str = json.dumps(data_dir)
     cursor.close()
+    conn.close()
     return Response(response=data_json, status=200)
 
 # データ保存

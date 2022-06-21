@@ -3,6 +3,7 @@ import os
 import time
 import pickle
 import bz2
+import base64
 import json
 
 
@@ -128,19 +129,27 @@ class Database(object):
 
     # データ保存
     def save_data(self, party_obj_list:list[object], world_obj:object):
-        party_bytes_list: list[bytes] = []
+        party_str_list: list[str] = []
         for obj in party_obj_list:
+            # バイト列に変換
             obj_bytes: bytes = self._obj_to_byte(obj)
-            party_bytes_list.append(obj_bytes)
+            obj_encode_str: str = self._bytes_to_encoded_string(obj_bytes)
+            party_str_list.append(obj_encode_str)
         
         world_bytes: bytes = self._obj_to_byte(world_obj)
+        world_str: str = self._bytes_to_encoded_string(world_bytes)
 
-        user_data = {'username' : self.username, 'party_obj_list' : party_bytes_list, 'world_obj' : world_bytes}
+        user_data = {'username' : self.username, 'party_str_list' : party_str_list, 'world_str' : world_str}
         json_str = json.dumps(user_data)
 
         _ = requests.post(URL+'/save_data', data=json_str)
 
-        world_obj.save = True
+    # バイト列をstring型のバイト列に
+    def _bytes_to_encoded_string(self, bytes):
+        # エンコード
+        obj_encode_bytes: bytes = base64.b64encode(bytes)
+        # string型でデコード
+        return obj_encode_bytes.decode('utf-8')
 
     # オブジェクト→バイト列
     def _obj_to_byte(self, obj:object) -> bytes:

@@ -1,5 +1,6 @@
 from flask import Flask, request, Response
 import sqlite3
+import base64
 import json
 
 
@@ -20,6 +21,7 @@ app: object = Flask(__name__)
 def internet_connect():
     return Response(response='connected', status=200)
 
+
 # ユーザーネーム確認
 @app.route("/check_account_username", methods=['POST'])
 def check_account_username():
@@ -30,13 +32,15 @@ def check_account_username():
     
     cursor.execute("SELECT username FROM Users where username = ?", ((username,)))
     a = cursor.fetchone()
-    print(a)
+
     cursor.close()
     conn.close()
+    
     if a is None:
         return Response(response='True', status=200)
     elif a[0]:
         return Response(response='False', status=200)
+
 
 # アカウント作成
 @app.route("/make_account", methods=['POST'])
@@ -44,14 +48,11 @@ def make_account():
     json_str = request.data.decode('utf-8')
     dir_data = json.loads(json_str)
 
-    print(dir_data['username'])
-    print(dir_data['password'])
-
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
 
     cursor.execute("INSERT INTO Users(username, password) VALUES(?, ?)", ((dir_data['username'], dir_data['password'])))
-
+    
     cursor.execute("SELECT password FROM Users where username = ?", ((dir_data['username'],)))
     a = cursor.fetchone()
     print(f'\n{a}')
@@ -71,11 +72,10 @@ def take_pass():
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
 
-    print(username)
     # ユーザー確認
     cursor.execute("SELECT password FROM Users where username = ?", ((username,)))
     password: tuple[str] = cursor.fetchone()
-    print(password)
+
     if password is None:
         data_dir: dir[str | bool] = {'password' : None, 'bool' : False}
         data_json: str = json.dumps(data_dir)
@@ -88,9 +88,12 @@ def take_pass():
     if a[0] is None:
         data_dir: dir[str | bool] = {'password' : password[0], 'bool' : True}
         data_json: str = json.dumps(data_dir)
+    
     cursor.close()
     conn.close()
+    
     return Response(response=data_json, status=200)
+
 
 # データ引き出し
 @app.route("/set_data", methods=['POST'])
@@ -126,12 +129,15 @@ def set_data() -> str:
 
     return json.dumps(user_data)  # 中身はすべてバイト列、向こうで戻すこと
 
+
 # データ保存
 @app.route("/save_data", methods=['POST'])
 def save_data():
     json_str: str = request.data.decode('utf-8') # jsonデータ
     user_data: dict = json.loads(json_str)
-    username, party_obj_list, world_obj_bytes = user_data['username'], user_data['party_obj_list'], user_data['world_obj']
+
+    party_obj_list, world_obj_bytes = encoded_string_to_bytes(user_data)
+    username: str = user_data['username']
 
     print(f">>Save objects by {username}")
 
@@ -147,7 +153,6 @@ def save_data():
     b: bytes = party_obj_list[3]
     cursor.execute("UPDATE Users SET sage_obj = ? WHERE username = ?", ((b, username)))
 
-    # world_obj.save = True # ←忘れない!!
     cursor.execute("UPDATE Users SET world_obj = ? WHERE username = ?", ((world_obj_bytes, username)))
 
     cursor.close()
@@ -155,6 +160,17 @@ def save_data():
     conn.close()
     
     return Response(response="DONE", status=200)
+
+
+def encoded_string_to_bytes(user_data):
+    # 文字列型のバイト列のリスト
+    party_str_list: list[str] = user_data['party_str_list']
+    party_bytes_list: list[bytes] = []
+    for bytes_str in party_str_list:
+        party_bytes_list.append(base64.b64decode(bytes_str.decode('utf-8')))
+    world_bytes = base64.b64decode(user_data['world_str'].decode('utf-8'))
+
+    return party_bytes_list, world_bytes
 
 
 if __name__ == '__main__':

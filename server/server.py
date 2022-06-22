@@ -144,14 +144,10 @@ def save_data():
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
 
-    b: bytes = party_obj_list[0]
-    cursor.execute("UPDATE Users SET hero_obj = ? WHERE username = ?", ((b, username)))
-    b: bytes = party_obj_list[1]
-    cursor.execute("UPDATE Users SET fencer_obj = ? WHERE username = ?", ((b, username)))
-    b: bytes = party_obj_list[2]
-    cursor.execute("UPDATE Users SET wizard_obj = ? WHERE username = ?", ((b, username)))
-    b: bytes = party_obj_list[3]
-    cursor.execute("UPDATE Users SET sage_obj = ? WHERE username = ?", ((b, username)))
+    cursor.execute("UPDATE Users SET hero_obj = ? WHERE username = ?", ((party_obj_list[0], username)))
+    cursor.execute("UPDATE Users SET fencer_obj = ? WHERE username = ?", ((party_obj_list[1], username)))
+    cursor.execute("UPDATE Users SET wizard_obj = ? WHERE username = ?", ((party_obj_list[2], username)))
+    cursor.execute("UPDATE Users SET sage_obj = ? WHERE username = ?", ((party_obj_list[3], username)))
 
     cursor.execute("UPDATE Users SET world_obj = ? WHERE username = ?", ((world_obj_bytes, username)))
 

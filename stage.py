@@ -397,8 +397,10 @@ class Stage(object): # DONE
                     continue
                 # セーブ
                 elif key.lower() == 's':
-                    if Me.login_status:
+                    if Me.login_status and self.save is False:
                         self._save_progress(Me, Party)
+                    elif Me.login_status and self.save is True:
+                        stm.stream_text("\n>>セーブはもうしてあります")
                     else:
                         stm.stream_text("\n>>ゲストでログイン中です。セーブできません")
                     time.sleep(TIME)
@@ -496,7 +498,7 @@ class Stage(object): # DONE
                     stm.stream_text('>>入力が間違っています')
         Party[key].skill_point_assign(status_select, int(num))
         self.all_skill_point -= int(num)
-        self.save = not self.save
+        self.save = False
         stm.stream_text('>>振り分け完了')
 
     # ゲーム終了
@@ -515,7 +517,7 @@ class Stage(object): # DONE
     # セーブ
     def _save_progress(self, Me:object, Party:list[object]) -> None:
         Me.save_data(Party, self)
-        self.save = not self.save
+        self.save = True
         stm.stream_text("\n>>セーブ完了")
         time.sleep(TIME)
 
@@ -569,12 +571,10 @@ if __name__ == "__main__":
         # 世界生成
         World: object = Stage()
 
-        if not Me.login_status:
-            World.save = None
-
     # セーブデータ読み込み
     else:
         Party, World = Me.set_data()
+        World.save = False
 
     #本編開始
     while(True):
@@ -588,5 +588,5 @@ if __name__ == "__main__":
         if World.now_stage < stageinfo.stage_num:
             World.stage_num[World.now_stage] = True
             World.stage_num.append(False)
-        World.save = not World.save
+        World.save = False
         

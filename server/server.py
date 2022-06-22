@@ -77,7 +77,7 @@ def take_pass():
     password: tuple[str] = cursor.fetchone()
 
     if password is None:
-        data_dir: dir[str | bool] = {'password' : None, 'bool' : False}
+        data_dir: dir[str] = {'password' : None, 'bool' : '0'}
         data_json: str = json.dumps(data_dir)
         cursor.close()
         conn.close()
@@ -86,12 +86,15 @@ def take_pass():
     cursor.execute("SELECT hero_obj FROM Users where username = ?", ((username,)))
     a: tuple[str] = cursor.fetchone()
     if a[0] is None:
-        data_dir: dir[str | bool] = {'password' : password[0], 'bool' : True}
+        data_dir: dir[str] = {'password' : password[0], 'bool' : '1'}
         data_json: str = json.dumps(data_dir)
     
     cursor.close()
     conn.close()
-    
+        
+    data_dir: dir[str] = {'password' : password[0], 'bool' : '2'}
+    data_json: str = json.dumps(data_dir)
+
     return Response(response=data_json, status=200)
 
 
@@ -125,7 +128,15 @@ def set_data() -> str:
 
     cursor.close()
     conn.close()
-    user_data: str = {'party_obj_list' : Party, 'world_obj' : World}
+
+    # jsonで送れるようにバイト列から文字列に変換
+    party_str_list: list[str] = []
+    for obj_bytes in Party:
+        bytes_str: str = bytes_to_encoded_string(obj_bytes)
+        party_str_list.append(bytes_str)
+    world_str: str = bytes_to_encoded_string(World)
+
+    user_data: str = {'party_str_list' : party_str_list, 'world_str' : world_str}
 
     return json.dumps(user_data)  # 中身はすべてバイト列、向こうで戻すこと
 
@@ -136,6 +147,7 @@ def save_data():
     json_str: str = request.data.decode('utf-8') # jsonデータ
     user_data: dict = json.loads(json_str)
 
+    # 受け取ったjsonの文字列をバイト列に戻す
     party_obj_list, world_obj_bytes = encoded_string_to_bytes(user_data)
     username: str = user_data['username']
 
@@ -158,13 +170,19 @@ def save_data():
     return Response(response="DONE", status=200)
 
 
+# バイト列をstring型のバイト列に
+def bytes_to_encoded_string(obj_bytes):
+    # エンコード
+    obj_encode_bytes: bytes = base64.b64encode(obj_bytes)
+    # string型でデコード
+    return obj_encode_bytes.decode('utf-8')
+
+
 def encoded_string_to_bytes(user_data):
-    # 文字列型のバイト列のリスト
-    party_str_list: list[str] = user_data['party_str_list']
     party_bytes_list: list[bytes] = []
-    for bytes_str in party_str_list:
-        party_bytes_list.append(base64.b64decode(bytes_str.decode('utf-8')))
-    world_bytes = base64.b64decode(user_data['world_str'].decode('utf-8'))
+    for bytes_str in user_data['party_str_list']:
+        party_bytes_list.append(base64.b64decode(bytes_str))
+    world_bytes = base64.b64decode(user_data['world_str'])
 
     return party_bytes_list, world_bytes
 

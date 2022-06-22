@@ -20,6 +20,7 @@ class Database(object):
         self.login_status: bool = self._login()
         if self.login_status:
             print("\n>>ログインしました")
+            self.first = False
         else:
             print("\n>>ゲストで始めます")
             self.first = True
@@ -85,7 +86,6 @@ class Database(object):
                 return
             # ユーザー名確認
             res: object = requests.post(URL+"/check_account_username", data=username)
-            print(res.text)
             if res.text == 'True':
                 break
             else:
@@ -107,23 +107,26 @@ class Database(object):
     def _take_pass(self, username:str) -> str:
         res: object = requests.post(URL+"/take_pass", data=username)
         res_dir: dir[str | bool] = res.json()
-        if res_dir['bool']:
+        if res_dir['bool'] == '1':
             self.first = True
-        else:
+        # アカウント無し
+        elif res_dir['bool'] == '0':
             return False
         return res_dir['password']
 
     # データ引き出し
     def set_data(self) -> object:
         json_str: str = requests.post(URL+"/set_data", data=self.username)
-        user_data: dir[list[bytes] | bytes] = json_str.json()
+        user_data: dir[list[str] | str] = json_str.json()
+
+        party_bytes_list, world_bytes = self._encoded_string_to_bytes(user_data)
 
         Party: list[object] = []
-        for obj_bytes in user_data['party_obj_list']:
+        for obj_bytes in party_bytes_list:
             obj: object = self._byte_to_obj(obj_bytes)
             Party.append(obj)
 
-        World: object = self._byte_to_obj(user_data['world_obj'])
+        World: object = self._byte_to_obj(world_bytes)
 
         return Party, World
 
@@ -144,10 +147,19 @@ class Database(object):
 
         _ = requests.post(URL+'/save_data', data=json_str)
 
+    # string型のバイト列をバイト列に
+    def _encoded_string_to_bytes(self, user_data):
+        party_bytes_list: list[bytes] = []
+        for bytes_str in user_data['party_str_list']:
+            party_bytes_list.append(base64.b64decode(bytes_str))
+        world_bytes = base64.b64decode(user_data['world_str'])
+
+        return party_bytes_list, world_bytes
+
     # バイト列をstring型のバイト列に
-    def _bytes_to_encoded_string(self, bytes):
+    def _bytes_to_encoded_string(self, obj_bytes):
         # エンコード
-        obj_encode_bytes: bytes = base64.b64encode(bytes)
+        obj_encode_bytes: bytes = base64.b64encode(obj_bytes)
         # string型でデコード
         return obj_encode_bytes.decode('utf-8')
 

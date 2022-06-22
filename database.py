@@ -1,46 +1,40 @@
+import requests
 import os
 import time
-import sqlite3
 import pickle
 import bz2
+import base64
+import json
+
 
 from character import CLEAR
 
 
+URL: str = 'http://localhost:8080'
 TIME: int = 2
 
 
 class Database(object):
     def __init__(self) -> None:
-        self.first: bool = False
-
-        # データベース接続
-        try:
-            db: object = ('users.db')
-        except:
-            print("\n>>データベースが存在しません")
-            import sys
-            sys.exit()
-        conn: object = sqlite3.connect(db)
-        cursor: object = conn.cursor()
-        # テーブルが存在しない場合テーブル作成
-        cursor.execute("CREATE TABLE IF NOT EXISTS Users(id INTEGER PRIMARY KEY AUTOINCREMENT, username, password, hero_obj, fencer_obj, wizard_obj, sage_obj, demon_obj, world_obj)")
-        cursor.close()
-
         # ログイン処理
-        self.login_status: bool = self._login(conn)
+        self.login_status: bool = self._login()
         if self.login_status:
             print("\n>>ログインしました")
+            self.first = False
         else:
             print("\n>>ゲストで始めます")
             self.first = True
         time.sleep(TIME)
 
-        conn.commit()
-        conn.close()
-
     # ログイン処理
-    def _login(self, conn:object) -> bool:
+    def _login(self) -> bool:
+        # ネット接続＆サーバー接続確認
+        try:
+            connect: bool = self._internet_connection_test()
+            if not connect:
+                return False
+        except:
+            return False
         while(True):
             os.system(CLEAR)
 
@@ -49,12 +43,15 @@ class Database(object):
 
             # アカウント作成
             if username.lower() == 'p':
-                self._make_account(conn)
+                self._make_account()
                 continue
             elif username.lower() == 'g':
                 return False
-            real_pass: str = self._take_pass(conn, username)
+            real_pass: str = self._take_pass(username)
+            print(real_pass)
             if not real_pass:
+                print("\n>>アカウントが存在しません")
+                time.sleep(TIME)
                 # ユーザー名が存在しない場合continue
                 continue
 
@@ -70,102 +67,101 @@ class Database(object):
                 break
         return True
 
-    # アカウント作成
-    def _make_account(self, conn:object) -> None:
-        cursor: object = conn.cursor()
+    # インターネット接続確認
+    def _internet_connection_test(self) -> bool:
+        res: object = requests.post(URL+"/internet_connect")
+        if not res.status_code == 200:
+            return False
+        print(res.text)
+        return True
 
+    # アカウント作成
+    def _make_account(self) -> None:
         while(True):
             os.system(CLEAR)
-            
+                
             print("===アカウント作成===")
             username: str = input(">>ユーザー名(やめるにはcキー): ")
             if username.lower() == 'c':
                 return
             # ユーザー名確認
-            cursor.execute("SELECT username FROM Users where username = ?", ((username,)))
-            if cursor.fetchone() is None:
+            res: object = requests.post(URL+"/check_account_username", data=username)
+            if res.text == 'True':
                 break
             else:
                 print("\n>>既にそのユーザー名は使われています")
                 time.sleep(TIME)
                 continue
+
         password: str = input(">>パスワード: ")
 
         # ユーザー作成
-        cursor.execute("INSERT INTO Users(username, password) VALUES(?, ?)", ((username, password)))
+        dir_data: dir[str] = {'username' : username, 'password' : password}
+        _ = requests.post(URL+"/make_account", data=json.dumps(dir_data))
+        
         print("\n>>アカウント作成完了")
         self.first = True
         time.sleep(TIME)
-
-        cursor.close()
-
+        
     # ユーザー名確認 ＆ パスワードを引き出し
-    def _take_pass(self, conn:object, username:str) -> str:
-        cursor: object = conn.cursor()
-
-        # ユーザー確認
-        cursor.execute("SELECT password FROM Users where username = ?", ((username,)))
-        password: tuple[str] = cursor.fetchone()
-        if password is None:
-            print("\n>>アカウントが存在しません")
-            time.sleep(TIME)
-            return False
-        cursor.execute("SELECT hero_obj FROM Users where username = ?", ((username,)))
-        a: tuple[str] = cursor.fetchone()
-        if a[0] is None:
+    def _take_pass(self, username:str) -> str:
+        res: object = requests.post(URL+"/take_pass", data=username)
+        res_dir: dir[str | bool] = res.json()
+        if res_dir['bool'] == '1':
             self.first = True
-        cursor.close()
-        return password[0]
+        # アカウント無し
+        elif res_dir['bool'] == '0':
+            return False
+        return res_dir['password']
 
-    # オブジェクト引き出し
-    def set_obj(self) -> object:
-        conn: object = sqlite3.connect('users.db')
-        cursor: object = conn.cursor()
+    # データ引き出し
+    def set_data(self) -> object:
+        json_str: str = requests.post(URL+"/set_data", data=self.username)
+        user_data: dir[list[str] | str] = json_str.json()
+
+        party_bytes_list, world_bytes = self._encoded_string_to_bytes(user_data)
+
         Party: list[object] = []
+        for obj_bytes in party_bytes_list:
+            obj: object = self._byte_to_obj(obj_bytes)
+            Party.append(obj)
 
-        cursor.execute("SELECT hero_obj FROM Users where username = ?", ((self.username,)))
-        chara: tuple[bytes] = cursor.fetchone()
-        Party.append(self._byte_to_obj(chara[0]))
-        cursor.execute("SELECT fencer_obj FROM Users where username = ?", ((self.username,)))
-        chara: tuple[bytes] = cursor.fetchone()
-        Party.append(self._byte_to_obj(chara[0]))
-        cursor.execute("SELECT wizard_obj FROM Users where username = ?", ((self.username,)))
-        chara: tuple[bytes] = cursor.fetchone()
-        Party.append(self._byte_to_obj(chara[0]))
-        cursor.execute("SELECT sage_obj FROM Users where username = ?", ((self.username,)))
-        chara: tuple[bytes] = cursor.fetchone()
-        Party.append(self._byte_to_obj(chara[0]))
+        World: object = self._byte_to_obj(world_bytes)
 
-        cursor.execute("SELECT world_obj FROM Users where username = ?", ((self.username,)))
-        world: tuple[bytes] = cursor.fetchone()
-        World: object = self._byte_to_obj(world[0])
-
-        cursor.close()
-        conn.close()
         return Party, World
 
-    # オブジェクト保存
-    def save_obj(self, party_obj_list:list[object], world_obj:object) -> None:
-        conn: object = sqlite3.connect('users.db')
-        cursor: object = conn.cursor()
-
-        b: bytes = self._obj_to_byte(party_obj_list[0])
-        cursor.execute("UPDATE Users SET hero_obj = ? WHERE username = ?", ((b, self.username)))
-        b: bytes = self._obj_to_byte(party_obj_list[1])
-        cursor.execute("UPDATE Users SET fencer_obj = ? WHERE username = ?", ((b, self.username)))
-        b: bytes = self._obj_to_byte(party_obj_list[2])
-        cursor.execute("UPDATE Users SET wizard_obj = ? WHERE username = ?", ((b, self.username)))
-        b: bytes = self._obj_to_byte(party_obj_list[3])
-        cursor.execute("UPDATE Users SET sage_obj = ? WHERE username = ?", ((b, self.username)))
-
-        b: bytes = self._obj_to_byte(world_obj)
-        cursor.execute("UPDATE Users SET world_obj = ? WHERE username = ?", ((b, self.username)))
-
-        cursor.close()
-        conn.commit()
-        conn.close()
+    # データ保存
+    def save_data(self, party_obj_list:list[object], world_obj:object):
+        party_str_list: list[str] = []
+        for obj in party_obj_list:
+            # バイト列に変換
+            obj_bytes: bytes = self._obj_to_byte(obj)
+            obj_encode_str: str = self._bytes_to_encoded_string(obj_bytes)
+            party_str_list.append(obj_encode_str)
         
-        world_obj.save = True
+        world_bytes: bytes = self._obj_to_byte(world_obj)
+        world_str: str = self._bytes_to_encoded_string(world_bytes)
+
+        user_data = {'username' : self.username, 'party_str_list' : party_str_list, 'world_str' : world_str}
+        json_str = json.dumps(user_data)
+
+        _ = requests.post(URL+'/save_data', data=json_str)
+
+    # string型のバイト列をバイト列に
+    def _encoded_string_to_bytes(self, user_data):
+        party_bytes_list: list[bytes] = []
+        for bytes_str in user_data['party_str_list']:
+            party_bytes_list.append(base64.b64decode(bytes_str))
+        world_bytes = base64.b64decode(user_data['world_str'])
+
+        return party_bytes_list, world_bytes
+
+    # バイト列をstring型のバイト列に
+    def _bytes_to_encoded_string(self, obj_bytes):
+        # エンコード
+        obj_encode_bytes: bytes = base64.b64encode(obj_bytes)
+        # string型でデコード
+        return obj_encode_bytes.decode('utf-8')
 
     # オブジェクト→バイト列
     def _obj_to_byte(self, obj:object) -> bytes:
@@ -175,7 +171,5 @@ class Database(object):
     def _byte_to_obj(self, b:bytes) -> object:
         return pickle.loads(bz2.decompress(b))
 
-
-# ログインテスト
 if __name__ == '__main__':
     Database()

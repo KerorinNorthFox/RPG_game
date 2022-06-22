@@ -404,13 +404,6 @@ class Stage(object): # DONE
                     time.sleep(TIME)
                     os.system(CLEAR)
                     continue
-
-                # ################
-                # elif key.lower() == 'r':
-                #     Party[0].hp = 0
-                #     os.system('cls')
-                #     continue
-                # ###############
                         
                 # ゲーム終了
                 elif key.lower() == 'c':

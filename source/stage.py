@@ -543,7 +543,7 @@ def game_explain() -> None:
 
 
 # ほんへ
-if __name__ == "__main__":
+def main():
     # ログイン処理
     Me: object = database.Database()
     # ゲスト、最初時
@@ -589,4 +589,9 @@ if __name__ == "__main__":
             World.stage_num[World.now_stage] = True
             World.stage_num.append(False)
         World.save = False
+
+
+# ほんへ
+if __name__ == '__main__':
+    main()
         

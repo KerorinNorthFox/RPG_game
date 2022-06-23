@@ -1,6 +1,5 @@
 from flask import Flask, request, Response
 import sqlite3
-import base64
 import json
 
 

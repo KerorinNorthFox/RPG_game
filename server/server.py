@@ -55,7 +55,6 @@ def make_account():
     
     cursor.execute("SELECT password FROM Users where username = ?", ((dir_data['username'],)))
     a = cursor.fetchone()
-    print(f'\n{a}')
 
     cursor.close()
     conn.commit()

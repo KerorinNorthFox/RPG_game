@@ -546,7 +546,6 @@ def game_explain() -> None:
 if __name__ == "__main__":
     # ログイン処理
     Me: object = database.Database()
-    print(Me.first)
     # ゲスト、最初時
     if Me.login_status is False or Me.first is True:
         # ゲーム説明

@@ -310,13 +310,19 @@ class Battle(object):
             time.sleep(TIME)
 
             if killed_party_len < killed_enemy_len:
-                print(f"\n>>勝利!")
+                print('''＿人人人人＿
+＞勝利！！＜
+￣Y^Y^Y^Y￣''')
                 exp_level: str = 'victory'
             elif killed_party_len > killed_enemy_len:
-                print(f"\n>>敗北")
+                print('''＿人人人人人＿
+＞敗北。。。＜
+￣Y^Y^Y^Y^Y￣''')
                 exp_level: str = 'defeat'
             else:
-                print("\n>>引き分け")
+                print('''＿人人人人＿
+＞引き分け＜
+￣Y^Y^Y^Y￣''')
                 exp_level: str = 'draw'
             time.sleep(TIME)
 

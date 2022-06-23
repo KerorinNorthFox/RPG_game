@@ -76,6 +76,7 @@ def take_pass():
     cursor.execute("SELECT password FROM Users where username = ?", ((username,)))
     password: tuple[str] = cursor.fetchone()
 
+    # パスワードが無い場合
     if password is None:
         data_dir: dir[str] = {'password' : None, 'bool' : '0'}
         data_json: str = json.dumps(data_dir)
@@ -85,14 +86,15 @@ def take_pass():
 
     cursor.execute("SELECT hero_obj FROM Users where username = ?", ((username,)))
     a: tuple[str] = cursor.fetchone()
+    # セーブデータが無い場合
     if a[0] is None:
         data_dir: dir[str] = {'password' : password[0], 'bool' : '1'}
-        data_json: str = json.dumps(data_dir)
+    else:
+        data_dir: dir[str] = {'password' : password[0], 'bool' : '2'}
     
     cursor.close()
     conn.close()
         
-    data_dir: dir[str] = {'password' : password[0], 'bool' : '2'}
     data_json: str = json.dumps(data_dir)
 
     return Response(response=data_json, status=200)

@@ -20,7 +20,6 @@ class Database(object):
         self.login_status: bool = self._login()
         if self.login_status:
             print("\n>>ログインしました")
-            self.first = False
         else:
             print("\n>>ゲストで始めます")
             self.first = True
@@ -100,15 +99,18 @@ class Database(object):
         _ = requests.post(URL+"/make_account", data=json.dumps(dir_data))
         
         print("\n>>アカウント作成完了")
-        self.first = True
         time.sleep(TIME)
         
     # ユーザー名確認 ＆ パスワードを引き出し
     def _take_pass(self, username:str) -> str:
         res: object = requests.post(URL+"/take_pass", data=username)
         res_dir: dir[str | bool] = res.json()
+        # アカウントはあるがセーブデータ無し
         if res_dir['bool'] == '1':
             self.first = True
+        # セーブデータ有り
+        elif res_dir['bool'] == '2':
+            self.first = False
         # アカウント無し
         elif res_dir['bool'] == '0':
             return False

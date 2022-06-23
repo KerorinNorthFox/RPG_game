@@ -7,7 +7,7 @@ import base64
 import json
 
 
-from character import CLEAR
+from source.character import CLEAR
 
 
 URL: str = 'http://localhost:8080'
@@ -31,8 +31,10 @@ class Database(object):
         try:
             connect: bool = self._internet_connection_test()
             if not connect:
+                print(">>サーバー接続で問題が発生しました\n")
                 return False
         except:
+            print(">>サーバー接続で問題が発生しました\n")
             return False
         while(True):
             os.system(CLEAR)

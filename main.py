@@ -2,7 +2,6 @@
 # current version = v1.1.0
 #######################
 
+from source import stage
 
-import source.stage as a
-
-a.main()
+stage.main()

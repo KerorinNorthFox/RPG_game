@@ -2,10 +2,10 @@ import os
 import time
 import random
 
-import config
-import streamtextmodule as stm
-import database
-from character import *
+from source import config
+from source import database
+from source import streamtextmodule as stm
+from source.character import *
 
 
 CHARA_INFO: list[str | int] = config.chara_info
@@ -370,7 +370,7 @@ class Stage(object): # DONE
 
     # ステージ選択 : 敵編成を返す
     def select_stage(self, Party:list[object], Me:object) -> list[object]:
-        import stageinfo as si
+        from source import stageinfo as si
         stage_func_list: list[object | int] = [
                                                 si.one_one(), 
                                                 si.one_two(), 

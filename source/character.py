@@ -4,7 +4,7 @@ import math
 import time
 import os
 
-import streamtextmodule as stm
+from source import streamtextmodule as stm
 
 
 PARTITION: str = '-------------------------'

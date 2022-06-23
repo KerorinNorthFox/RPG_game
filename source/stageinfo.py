@@ -1,4 +1,4 @@
-from character import *
+from source.character import *
 
 
 stage_num: int = 2

@@ -432,11 +432,17 @@ class Stage(object): # DONE
         for num in Party:
             num.show_status()
         while(True):
-            print("\n--メニュー--\n1: スキルポイント振り分け(ベータ版)\np: もどる\n")
+            print("\n--メニュー--\n1: スキルポイント振り分け\n2: アイテム使用\np: もどる\n")
             key: str = input(": ")
+            # ポイント振り分け
             if key == '1':
                 self._skill_point_show(Party)
                 break
+            # アイテム使用
+            elif key == '2':
+                self._use_item()
+                break
+            # 戻る
             elif key.lower() == "p":
                 os.system(CLEAR)
                 break
@@ -500,6 +506,10 @@ class Stage(object): # DONE
         self.all_skill_point -= int(num)
         self.save = False
         stm.stream_text('>>振り分け完了')
+
+    # アイテム使用
+    def _use_item(self):
+        pass
 
     # ゲーム終了
     def _end_game(self, Me:object, Party:list[object]) -> None:

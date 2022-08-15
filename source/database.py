@@ -1,3 +1,6 @@
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
+from Crypto.Cipher import AES, PKCS1_OAEP
 import requests
 import os
 import time
@@ -12,6 +15,10 @@ from source.character import CLEAR
 
 URL: str = 'http://localhost:8080'
 TIME: int = 2
+
+
+recipient_key = RSA.import_key(open("public.pem", 'r').read())
+session_key = get_random_bytes(16)
 
 
 class Database(object):
@@ -85,8 +92,10 @@ class Database(object):
             username: str = input(">>ユーザー名(やめるにはcキー): ")
             if username.lower() == 'c':
                 return
+            # 暗号化
+            data = self._cipher(username)
             # ユーザー名確認
-            res: object = requests.post(URL+"/check_account_username", data=username)
+            res: object = requests.post(URL+"/check_account_username", data=data)
             if res.text == 'True':
                 break
             else:
@@ -98,7 +107,9 @@ class Database(object):
 
         # ユーザー作成
         dir_data: dir[str] = {'username' : username, 'password' : password}
-        _ = requests.post(URL+"/make_account", data=json.dumps(dir_data))
+        # 暗号化
+        data = self._cipher(json.dumps(dir_data))
+        _ = requests.post(URL+"/make_account", data=data)
         
         print("\n>>アカウント作成完了")
         time.sleep(TIME)
@@ -174,6 +185,18 @@ class Database(object):
     # バイト列→オブジェクト
     def _byte_to_obj(self, b:bytes) -> object:
         return pickle.loads(bz2.decompress(b))
+
+    # 暗号化
+    def _cipher(self, text:str) -> str:
+        cipher_rsa = PKCS1_OAEP.new(recipient_key)
+        enc_session_key = cipher_rsa.encrypt(session_key)
+        cipher_aes = AES.new(session_key, AES.MODE_EAX)
+        
+        ciphertext, tag = cipher_aes.encrypt_and_digest(text.encode('utf-8'))
+        data = {'enc_session_key':enc_session_key, 'nonce':cipher_aes.nonce, 'tag':tag, 'ciphertext':ciphertext}
+
+        return json.dumps(data)
+
 
 if __name__ == '__main__':
     Database()

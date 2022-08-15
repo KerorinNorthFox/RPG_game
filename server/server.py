@@ -1,3 +1,5 @@
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import AES, PKCS1_OAEP
 from flask import Flask, request, Response
 import sqlite3
 import json
@@ -12,6 +14,10 @@ conn.commit()
 conn.close()
 
 
+file_in = open("encrypted_data.txt", "rb")
+private_key = RSA.import_key(open("private.pem").read())
+
+
 app: object = Flask(__name__)
 
 
@@ -24,7 +30,9 @@ def internet_connect():
 # ユーザーネーム確認
 @app.route("/check_account_username", methods=['POST'])
 def check_account_username():
-    username: str = request.data.decode('utf-8')
+    json_data: str = request.data.decode('utf-8')
+    # 復号化
+    username = decipher(json.loads(json_data))
 
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
@@ -45,7 +53,8 @@ def check_account_username():
 @app.route("/make_account", methods=['POST'])
 def make_account():
     json_str = request.data.decode('utf-8')
-    dir_data = json.loads(json_str)
+    # 復号化
+    dir_data = decipher(json.loads(json_str))
 
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
@@ -160,6 +169,18 @@ def save_data():
     conn.close()
     
     return Response(response="DONE", status=200)
+
+
+# 復号化
+def decipher(data:str) -> str:
+    enc_session_key, nonce, tag, ciphertext = data['enc_session_key'], data['nonce'], data['tag'], data['ciphertext']
+    
+    cipher_rsa = PKCS1_OAEP.new(private_key)
+    session_key = cipher_rsa.decrypt(enc_session_key)    
+    cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+    text = cipher_aes.decrypt_and_verify(ciphertext, tag)
+
+    return text.decode('utf-8')
 
 
 if __name__ == '__main__':

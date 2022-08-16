@@ -17,8 +17,10 @@ URL: str = 'http://localhost:8080'
 TIME: int = 2
 
 
-recipient_key = RSA.import_key(open("public.pem", 'r').read())
+recipient_key = RSA.import_key(open("source/public.pem").read())
 session_key = get_random_bytes(16)
+file_in = open("encrypted_data.txt", "rb")
+private_key = RSA.import_key(open("source/private.pem").read())
 
 
 class Database(object):
@@ -43,6 +45,7 @@ class Database(object):
         except:
             print(">>サーバー接続で問題が発生しました\n")
             return False
+
         while(True):
             os.system(CLEAR)
 
@@ -73,6 +76,7 @@ class Database(object):
                 self.username: str = username
                 self.password: str = password
                 break
+
         return True
 
     # インターネット接続確認
@@ -93,10 +97,12 @@ class Database(object):
             if username.lower() == 'c':
                 return
             # 暗号化
-            data = self._cipher(username)
+            data: dir[str] = self._cipher(username)
             # ユーザー名確認
-            res: object = requests.post(URL+"/check_account_username", data=data)
-            if res.text == 'True':
+            res: object = requests.post(URL+"/check_account_username", data=json.dumps(data))
+            # 復号化
+            text: str = self._decipher(json.loads(res.text))
+            if text == 'True':
                 break
             else:
                 print("\n>>既にそのユーザー名は使われています")
@@ -108,16 +114,21 @@ class Database(object):
         # ユーザー作成
         dir_data: dir[str] = {'username' : username, 'password' : password}
         # 暗号化
-        data = self._cipher(json.dumps(dir_data))
-        _ = requests.post(URL+"/make_account", data=data)
+        data: dir[str] = self._cipher(json.dumps(dir_data))
+        _ = requests.post(URL+"/make_account", data=json.dumps(data))
         
         print("\n>>アカウント作成完了")
         time.sleep(TIME)
         
     # ユーザー名確認 ＆ パスワードを引き出し
     def _take_pass(self, username:str) -> str:
-        res: object = requests.post(URL+"/take_pass", data=username)
-        res_dir: dir[str | bool] = res.json()
+        # 暗号化
+        data: dir[str] = self._cipher(username)
+        res: object = requests.post(URL+"/take_pass", data=json.dumps(data))
+        # 復号化
+        res_dir: str = self._decipher(res.json())
+        res_dir = json.loads(res_dir)
+
         # アカウントはあるがセーブデータ無し
         if res_dir['bool'] == '1':
             self.first = True
@@ -127,15 +138,24 @@ class Database(object):
         # アカウント無し
         elif res_dir['bool'] == '0':
             return False
+        
         return res_dir['password']
 
     # データ引き出し
     def set_data(self) -> object:
-        json_str: str = requests.post(URL+"/set_data", data=self.username)
-        user_data: dir[list[str] | str] = json_str.json()
+        # 暗号化
+        data = self._cipher(self.username)
+        json_str: object = requests.post(URL+"/set_data", data=json.dumps(data))
+        # 復号化
+        user_data: str = self._decipher(json_str.json())
+        user_data = json.loads(user_data)
 
-        party_bytes_list, world_bytes = self._encoded_string_to_bytes(user_data)
+        # 文字列からバイト列に
+        party_bytes_list = []
+        party_bytes_list = [self._encoded_string_to_bytes(bytes_str) for bytes_str in user_data['party_str_list']]
+        world_bytes = self._encoded_string_to_bytes(user_data['world_str'])
 
+        # バイト列からオブジェクトに
         Party: list[object] = []
         for obj_bytes in party_bytes_list:
             obj: object = self._byte_to_obj(obj_bytes)
@@ -151,25 +171,24 @@ class Database(object):
         for obj in party_obj_list:
             # バイト列に変換
             obj_bytes: bytes = self._obj_to_byte(obj)
+            # バイト列から文字列に
             obj_encode_str: str = self._bytes_to_encoded_string(obj_bytes)
             party_str_list.append(obj_encode_str)
         
+        # 上と同様
         world_bytes: bytes = self._obj_to_byte(world_obj)
         world_str: str = self._bytes_to_encoded_string(world_bytes)
 
         user_data = {'username' : self.username, 'party_str_list' : party_str_list, 'world_str' : world_str}
-        json_str = json.dumps(user_data)
 
-        _ = requests.post(URL+'/save_data', data=json_str)
+        # 暗号化
+        data = self._cipher(json.dumps(user_data))
+
+        _ = requests.post(URL+'/save_data', data=json.dumps(data))
 
     # string型のバイト列をバイト列に
-    def _encoded_string_to_bytes(self, user_data):
-        party_bytes_list: list[bytes] = []
-        for bytes_str in user_data['party_str_list']:
-            party_bytes_list.append(base64.b64decode(bytes_str))
-        world_bytes = base64.b64decode(user_data['world_str'])
-
-        return party_bytes_list, world_bytes
+    def _encoded_string_to_bytes(self, bytes_str):
+        return base64.b64decode(bytes_str)
 
     # バイト列をstring型のバイト列に
     def _bytes_to_encoded_string(self, obj_bytes):
@@ -187,15 +206,36 @@ class Database(object):
         return pickle.loads(bz2.decompress(b))
 
     # 暗号化
-    def _cipher(self, text:str) -> str:
+    def _cipher(self, text:str) -> dir:
+        # 暗号化準備
         cipher_rsa = PKCS1_OAEP.new(recipient_key)
         enc_session_key = cipher_rsa.encrypt(session_key)
         cipher_aes = AES.new(session_key, AES.MODE_EAX)
         
+        # 暗号化
         ciphertext, tag = cipher_aes.encrypt_and_digest(text.encode('utf-8'))
-        data = {'enc_session_key':enc_session_key, 'nonce':cipher_aes.nonce, 'tag':tag, 'ciphertext':ciphertext}
+        
+        # 通信できるようにバイト列を文字列に
+        enc_session_key = self._bytes_to_encoded_string(enc_session_key)
+        nonce = self._bytes_to_encoded_string(cipher_aes.nonce)
+        tag = self._bytes_to_encoded_string(tag)
+        ciphertext = self._bytes_to_encoded_string(ciphertext)
+        
+        data = {'enc_session_key':enc_session_key, 'nonce':nonce, 'tag':tag, 'ciphertext':ciphertext}
 
-        return json.dumps(data)
+        return data
+
+    # 復号化
+    def _decipher(self, data:str) -> str:
+        enc_session_key, nonce  = self._encoded_string_to_bytes(data['enc_session_key']), self._encoded_string_to_bytes(data['nonce'])
+        tag, ciphertext = self._encoded_string_to_bytes(data['tag']), self._encoded_string_to_bytes(data['ciphertext'])
+
+        cipher_rsa = PKCS1_OAEP.new(private_key)
+        session_key = cipher_rsa.decrypt(enc_session_key)    
+        cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+        text = cipher_aes.decrypt_and_verify(ciphertext, tag)
+
+        return text.decode('utf-8')
 
 
 if __name__ == '__main__':

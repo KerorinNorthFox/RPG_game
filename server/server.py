@@ -1,8 +1,10 @@
 from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 from flask import Flask, request, Response
 import sqlite3
 import json
+import base64
 
 
 conn: object = sqlite3.connect('users.db')
@@ -14,6 +16,8 @@ conn.commit()
 conn.close()
 
 
+recipient_key = RSA.import_key(open("public.pem").read())
+session_key = get_random_bytes(16)
 file_in = open("encrypted_data.txt", "rb")
 private_key = RSA.import_key(open("private.pem").read())
 
@@ -32,7 +36,7 @@ def internet_connect():
 def check_account_username():
     json_data: str = request.data.decode('utf-8')
     # 復号化
-    username = decipher(json.loads(json_data))
+    username: str = decipher(json.loads(json_data))
 
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
@@ -44,17 +48,22 @@ def check_account_username():
     conn.close()
     
     if a is None:
-        return Response(response='True', status=200)
+        # 暗号化
+        data: dir[str] = cipher('True')
+        return Response(response=json.dumps(data), status=200)
     elif a[0]:
-        return Response(response='False', status=200)
+        # 暗号化
+        data: dir[str] = cipher('False')
+        return Response(response=json.dumps(data), status=200)
 
 
 # アカウント作成
 @app.route("/make_account", methods=['POST'])
 def make_account():
-    json_str = request.data.decode('utf-8')
+    json_str: str = request.data.decode('utf-8')
     # 復号化
-    dir_data = decipher(json.loads(json_str))
+    dir_data: str = decipher(json.loads(json_str))
+    dir_data: dir[str] = json.loads(dir_data)
 
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
@@ -68,13 +77,15 @@ def make_account():
     conn.commit()
     conn.close()
 
-    return Response(response='DONE', status=200)
+    return Response(response=' ', status=200)
     
 
 # パスワード確認
 @app.route("/take_pass", methods=['POST'])
 def take_pass():
-    username: str = request.data.decode('utf-8')
+    json_str: str = request.data.decode('utf-8')
+    # 復号化
+    username: str = decipher(json.loads(json_str))
 
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
@@ -87,9 +98,12 @@ def take_pass():
     if password is None:
         data_dir: dir[str] = {'password' : None, 'bool' : '0'}
         data_json: str = json.dumps(data_dir)
+        # 暗号化
+        data = cipher(data_json)
         cursor.close()
         conn.close()
-        return Response(response=data_json, status=200)
+
+        return Response(response=json.dumps(data), status=200)
 
     cursor.execute("SELECT hero_obj FROM Users where username = ?", ((username,)))
     a: tuple[str] = cursor.fetchone()
@@ -103,16 +117,20 @@ def take_pass():
     conn.close()
         
     data_json: str = json.dumps(data_dir)
+    # 暗号化
+    data = cipher(data_json)
 
-    return Response(response=data_json, status=200)
+    return Response(response=json.dumps(data), status=200)
 
 
 # データ引き出し
 @app.route("/set_data", methods=['POST'])
 def set_data() -> str:
     username: str = request.data.decode('utf-8')
+    # 復号化
+    username: str = decipher(json.loads(username))
 
-    print(f">>Load objects by {username}")
+    print(f"\n>>Load objects by {username}")
 
     conn: object = sqlite3.connect('users.db')
     cursor: object = conn.cursor()
@@ -140,14 +158,19 @@ def set_data() -> str:
 
     user_data: str = {'party_str_list' : Party, 'world_str' : World}
 
-    return json.dumps(user_data)  # 中身はすべてバイト列、向こうで戻すこと
+    # 暗号化
+    data: dir[str] = cipher(json.dumps(user_data))
+
+    return json.dumps(data)  # 中身はすべてバイト列、向こうで戻すこと
 
 
 # データ保存
 @app.route("/save_data", methods=['POST'])
 def save_data():
     json_str: str = request.data.decode('utf-8') # jsonデータ
-    user_data: dict = json.loads(json_str)
+    # 復号化
+    data = decipher(json.loads(json_str))
+    user_data: dict = json.loads(data)
 
     # 受け取ったjsonの文字列をバイト列に戻す
     username, party_str_list, world_str = user_data['username'], user_data['party_str_list'], user_data['world_str']
@@ -168,13 +191,45 @@ def save_data():
     conn.commit()
     conn.close()
     
-    return Response(response="DONE", status=200)
+    return Response(response=" ", status=200)
 
+# string型のバイト列をバイト列に
+def encoded_string_to_bytes(bytes_str):
+    return base64.b64decode(bytes_str)
+
+# バイト列をstring型のバイト列に
+def bytes_to_encoded_string(obj_bytes):
+    # エンコード
+    obj_encode_bytes: bytes = base64.b64encode(obj_bytes)
+    # string型でデコード
+    return obj_encode_bytes.decode('utf-8')
+
+# 暗号化
+def cipher(text:str) -> dir:
+    # 暗号化準備
+    cipher_rsa = PKCS1_OAEP.new(recipient_key)
+    enc_session_key = cipher_rsa.encrypt(session_key)
+    cipher_aes = AES.new(session_key, AES.MODE_EAX)
+    
+    # 暗号化
+    ciphertext, tag = cipher_aes.encrypt_and_digest(text.encode('utf-8'))
+    
+    # 通信できるようにバイト列を文字列に
+    enc_session_key = bytes_to_encoded_string(enc_session_key)
+    nonce = bytes_to_encoded_string(cipher_aes.nonce)
+    tag = bytes_to_encoded_string(tag)
+    ciphertext = bytes_to_encoded_string(ciphertext)
+    
+    data = {'enc_session_key':enc_session_key, 'nonce':nonce, 'tag':tag, 'ciphertext':ciphertext}
+    print(data)
+
+    return data
 
 # 復号化
 def decipher(data:str) -> str:
-    enc_session_key, nonce, tag, ciphertext = data['enc_session_key'], data['nonce'], data['tag'], data['ciphertext']
-    
+    enc_session_key, nonce  = encoded_string_to_bytes(data['enc_session_key']), encoded_string_to_bytes(data['nonce'])
+    tag, ciphertext = encoded_string_to_bytes(data['tag']), encoded_string_to_bytes(data['ciphertext'])
+
     cipher_rsa = PKCS1_OAEP.new(private_key)
     session_key = cipher_rsa.decrypt(enc_session_key)    
     cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)

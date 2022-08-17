@@ -17,10 +17,10 @@ URL: str = 'http://localhost:8080'
 TIME: int = 2
 
 
-recipient_key = RSA.import_key(open("source/public.pem").read())
+recipient_key = RSA.import_key(open("source/key/public.pem").read())
 session_key = get_random_bytes(16)
-file_in = open("encrypted_data.txt", "rb")
-private_key = RSA.import_key(open("source/private.pem").read())
+file_in = open("source/key/encrypted_data.txt", "rb")
+private_key = RSA.import_key(open("source/key/public.pem").read())
 
 
 class Database(object):

@@ -5,6 +5,10 @@ from flask import Flask, request, Response
 import sqlite3
 import json
 import base64
+import threading
+
+
+import commands as cm
 
 
 conn: object = sqlite3.connect('users.db')
@@ -16,10 +20,10 @@ conn.commit()
 conn.close()
 
 
-recipient_key = RSA.import_key(open("public.pem").read())
+recipient_key = RSA.import_key(open("key/public.pem").read())
 session_key = get_random_bytes(16)
-file_in = open("encrypted_data.txt", "rb")
-private_key = RSA.import_key(open("private.pem").read())
+file_in = open("key/encrypted_data.txt", "rb")
+private_key = RSA.import_key(open("key/private.pem").read())
 
 
 app: object = Flask(__name__)
@@ -193,9 +197,11 @@ def save_data():
     
     return Response(response=" ", status=200)
 
+
 # string型のバイト列をバイト列に
 def encoded_string_to_bytes(bytes_str):
     return base64.b64decode(bytes_str)
+
 
 # バイト列をstring型のバイト列に
 def bytes_to_encoded_string(obj_bytes):
@@ -203,6 +209,7 @@ def bytes_to_encoded_string(obj_bytes):
     obj_encode_bytes: bytes = base64.b64encode(obj_bytes)
     # string型でデコード
     return obj_encode_bytes.decode('utf-8')
+
 
 # 暗号化
 def cipher(text:str) -> dir:
@@ -221,9 +228,9 @@ def cipher(text:str) -> dir:
     ciphertext = bytes_to_encoded_string(ciphertext)
     
     data = {'enc_session_key':enc_session_key, 'nonce':nonce, 'tag':tag, 'ciphertext':ciphertext}
-    print(data)
 
     return data
+
 
 # 復号化
 def decipher(data:str) -> str:
@@ -237,6 +244,27 @@ def decipher(data:str) -> str:
 
     return text.decode('utf-8')
 
+#----------------------------------------------------------
+
+# サーバースタート
+def server():
+    app.run(host='0.0.0.0', port=8080, threaded=True)
+
+
+# コマンド
+def loop():
+    while(True):
+        com = input(">>")
+        # ユーザー一覧を見る
+        if com == '!users':
+            cm.user_show()
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, threaded=True)
+    thread1 = threading.Thread(target=server)
+    thread2 = threading.Thread(target=loop)
+    thread1.start()
+    thread2.start()
+
+    
+

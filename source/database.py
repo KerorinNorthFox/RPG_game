@@ -31,8 +31,7 @@ class Database(object):
         try:
             connect: bool = self._internet_connection_test()
             if not connect:
-                print(">>サーバー接続で問題が発生しました\n")
-                return False
+                raise
         except:
             print(">>サーバー接続で問題が発生しました\n")
             return False

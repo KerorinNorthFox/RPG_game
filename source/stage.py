@@ -21,7 +21,7 @@ class Battle(object):
 
         stm.stream_text("\n>>戦闘開始")
         # 敵とエンカウント表示
-        self._encount_enemy(Enemy) 
+        self._encounter_enemy(Enemy) 
 
         # メインループ開始
         try:
@@ -142,9 +142,9 @@ class Battle(object):
                                 Enemy[em_ct].target = self._enemy_select_target(Party)
                             # 各処理
                             if Enemy[em_ct].way == 1: # 物理攻撃
-                                Enemy[em_ct].physical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence)
+                                Enemy[em_ct].physical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defense)
                             elif Enemy[em_ct].way == 2: # 魔法攻撃
-                                Enemy[em_ct].magical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defence, 1.0)
+                                Enemy[em_ct].magical_attack(Party[Enemy[em_ct].target], Party[Enemy[em_ct].target].defense, 1.0)
                             else: # 防御＆行動不能
                                 em_ct += 1
                                 continue
@@ -158,13 +158,13 @@ class Battle(object):
                 time.sleep(TIME)
                 now_turn += 1
                 for chara in Party:
-                    chara.defence = False
+                    chara.defense = False
         except StopIteration:
             pass
 
         
     # 敵とエンカウント表示
-    def _encount_enemy(self, Enemy:list[object]) -> None:
+    def _encounter_enemy(self, Enemy:list[object]) -> None:
         for num in Enemy:
             print(f">>{num.name}が現れた!")
         time.sleep(TIME*2)
@@ -294,7 +294,7 @@ class Battle(object):
         for chara in Party:
             if chara.way == 2:
                 stm.stream_text(f">>{chara.name}は防御の姿勢をとった")
-                chara.defence = True
+                chara.defense = True
 
     # 戦闘終了
     def _end_battle(self, Party:list[object], Enemy:list[object], World:object) -> None:
@@ -354,10 +354,9 @@ class Battle(object):
 
 # ステージ管理
 class Stage(object): # DONE
-    def __init__(self) -> None:
-        self.stage_num: list[bool] = [True, False]
-        self.all_skill_point: int = 0
-        self.save: bool = False
+    stage_num: list[bool] = [True, False]
+    all_skill_point: int = 0
+    save: bool = False
 
     # ステージ表示
     def _show_stage(self) -> None:
@@ -374,8 +373,7 @@ class Stage(object): # DONE
         stage_func_list: list[object | int] = [
                                                 si.one_one(), 
                                                 si.one_two(), 
-                                                si.one_three()
-                                              ]
+                                                si.one_three()]
         while(True):
             # プレイ可能ステージ表示
             self._show_stage()
@@ -556,7 +554,7 @@ def game_explain() -> None:
 def main():
     # ログイン処理
     Me: object = database.Database()
-    # ゲスト、最初時
+    # ゲストor初回
     if Me.login_status is False or Me.first is True:
         # ゲーム説明
         while(True):

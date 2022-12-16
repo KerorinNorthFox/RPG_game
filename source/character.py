@@ -14,7 +14,7 @@ CLEAR = 'cls' if os.name == 'nt' else 'clear' # 実行os判別
 
 class Character(object): # DONE
     # 物理攻撃処理 : 安定した攻撃 : 攻撃力 - (防御力 + 0~物理防御値間の乱数) : ダメージが0の場合、攻撃力×1~10%のダメージ
-    def physical_attack(self, Atked:object, defence:bool) -> None:
+    def physical_attack(self, Atked:object, defense:bool) -> None:
         stm.stream_text(f"\n>>{self.name}の攻撃")
         # ミス確率
         miss_prob: list[int] = self._miss_calc(Atked, 10)
@@ -31,12 +31,12 @@ class Character(object): # DONE
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        self._hp_subtraction(defence, Atked, dmg, text)
+        self._hp_subtraction(defense, Atked, dmg, text)
         # 死亡処理
         self._no_hp(Atked)
 
     # 魔法攻撃処理 : ダメージが通りやすい(防御貫通)が外しやすい : 魔力 - 0~魔法防御値間の乱数 : ダメージが0の場合ノーダメ
-    def magical_attack(self, Atked:object, defence:bool, rate:float) -> None:
+    def magical_attack(self, Atked:object, defense:bool, rate:float) -> None:
         stm.stream_text(f"\n>>{self.name}の攻撃")
         # 魔法ダメージ計算
         dmg: int = math.floor(self.mana * rate) - (random.randint(0, Atked.amana))
@@ -50,7 +50,7 @@ class Character(object): # DONE
         # クリティカル処理
         dmg, text = self._critical(dmg)
         # HP減算
-        self._hp_subtraction(defence, Atked, dmg, text)
+        self._hp_subtraction(defense, Atked, dmg, text)
         # 死亡処理
         self._no_hp(Atked)
 
@@ -87,8 +87,8 @@ class Character(object): # DONE
         return dmg, text
 
     # hp減算
-    def _hp_subtraction(self, defence:bool, Atked:object, dmg:int, text:str) -> None:
-        if defence:
+    def _hp_subtraction(self, defense:bool, Atked:object, dmg:int, text:str) -> None:
+        if defense:
             dmg = math.floor(dmg/6) # 防御時ダメージ1/6
             Atked.hp -= dmg
             print('nya')
@@ -108,8 +108,8 @@ class Character(object): # DONE
 
 class PartyClass(Character): # DONE
     def __init__(self, name, job, hp, mp, 
-                 strg, vtl, mana, aatk, 
-                 amana, speed, alive, element, magic) -> None:
+                strg, vtl, mana, aatk, 
+                amana, speed, alive, element, magic) -> None:
         self.name: str = name
         self.job: str = job
         self.level: int = 1
@@ -129,7 +129,7 @@ class PartyClass(Character): # DONE
         self.way: int = 0
         self.target: int = 0
         self.selected_magic: int = None
-        self.defence: bool = False
+        self.defense: bool = False
         # バックアップ
         self.hp_backup: int = hp
         self.mp_backup: int = mp
@@ -250,8 +250,8 @@ class PartyClass(Character): # DONE
 
 class EnemyClass(Character): # DONE
     def __init__(self, name, job, hp, mp, 
-                 strg, vtl, mana, aatk, amana, 
-                 speed, alive, element, way_type) -> None:
+                strg, vtl, mana, aatk, amana, 
+                speed, alive, element, way_type) -> None:
         self.name: str = name
         self.job: str = job
         self.hp: int = hp
